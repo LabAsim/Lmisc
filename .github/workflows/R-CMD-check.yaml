@@ -19,16 +19,17 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - {os: macos-latest,   r: 'release'}
-          - {os: windows-latest, r: 'release'}
-          - {os: ubuntu-latest,   r: 'devel', http-user-agent: 'release'}
-          - {os: ubuntu-latest,   r: 'release'}
-          - {os: ubuntu-latest,   r: 'oldrel-1'}
+          - {os: macos-latest,   r: 'release',  vdifr-skip-check: 'true'}
+          - {os: windows-latest, r: 'release',  vdifr-skip-check: 'true'}
+          - {os: ubuntu-latest,  r: 'devel',    http-user-agent: 'release', vdifr-skip-check: 'true'}
+            # Don't skip on Ubuntu release
+          - {os: ubuntu-latest,  r: 'release',  vdifr-skip-check: 'false'}
+          - {os: ubuntu-latest,  r: 'oldrel-1', vdifr-skip-check: 'true'}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
-      VDIFR_SKIP_CHECK: false
+      VDIFR_SKIP_CHECK: ${{ matrix.config.vdifr-skip-check }}
 
     steps:
       - uses: actions/checkout@v6
