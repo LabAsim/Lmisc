@@ -1307,7 +1307,7 @@ withr::with_seed(
   seed=123,
   code = {
     it(
-      "horizontal lines",
+      "horizontal lines2",
       {
         # Skip during check if VDIFR_SKIP_CHECK is set
         if (identical(Sys.getenv("VDIFR_SKIP_CHECK"), "true")) {
@@ -1339,7 +1339,7 @@ withr::with_seed(
             p <- plot_dag(nodes, edges, ylim = c(-2, 4), xlim = c(-2, 16), text_size = 3)
             # p
             vdiffr::expect_doppelganger(
-              "horizontal lines",
+              "horizontal lines2",
               p
             )
 
@@ -1390,7 +1390,7 @@ withr::with_seed(
         p <- plot_dag(nodes, edges, ylim = c(-2, 4), xlim = c(-2, 16), text_size = 3)
         # p
         vdiffr::expect_doppelganger(
-          "horizontal lines",
+          "diagonal lines",
           p
         )
 
