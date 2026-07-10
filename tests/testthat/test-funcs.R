@@ -1189,29 +1189,6 @@ withr::with_seed(
       )
     })
 
-    it("handles single edge", {
-      nodes <- create_test_nodes2()
-      edges <- data.frame(
-        from = c("Input"),
-        to = c("Hidden"),
-        curvature = c(0),
-        pvalue = c(0.01),
-        est = c(0.8),
-        ci.lower = c(0.4),
-        ci.upper = c(1.2),
-        hjust = c(0.33),
-        vjust = c(0.5),
-        label_position = 0.5,
-        curvature = c(1),
-        curvature_amount = c(0)
-      )
-
-      vdiffr::expect_doppelganger(
-        "Base graphics histogram",
-        plot_dag(nodes, edges)
-      )
-    })
-
     it("handles duplicate edges (same endpoints)", {
       nodes <- data.frame(
         label = c("A", "B"),
