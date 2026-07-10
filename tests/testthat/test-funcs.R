@@ -31,7 +31,6 @@ describe("save_dag auto-detects file type from extension", {
 })
 
 
-# Test 1: Basic functionality - saves TIFF file
 test_that("saves TIFF file successfully", {
   test_plot <- ggplot(mtcars, aes(x = wt, y = mpg)) +
     geom_point()
@@ -47,7 +46,6 @@ test_that("saves TIFF file successfully", {
   unlink(temp_path)
 })
 
-# Test 2: Basic functionality - saves PNG file
 test_that("saves PNG file successfully", {
   test_plot <- ggplot(mtcars, aes(x = wt, y = mpg)) +
     geom_point()
@@ -63,7 +61,6 @@ test_that("saves PNG file successfully", {
   unlink(temp_path)
 })
 
-# Test 3: Invalid type throws error
 test_that("throws error for unsupported type", {
   test_plot <- ggplot(mtcars, aes(x = wt, y = mpg)) +
     geom_point()
@@ -74,7 +71,6 @@ test_that("throws error for unsupported type", {
   )
 })
 
-# Test 4: File dimensions are respected (approximate check)
 test_that("output file size reflects specified dimensions", {
   test_plot <- ggplot(mtcars, aes(x = wt, y = mpg)) +
     geom_point()
@@ -91,7 +87,6 @@ test_that("output file size reflects specified dimensions", {
   unlink(large_path)
 })
 
-# Test 5: Different plot objects work
 test_that("works with different ggplot objects", {
   bar_plot <- ggplot(mtcars, aes(x = factor(cyl))) +
     geom_bar()
@@ -111,7 +106,6 @@ test_that("works with different ggplot objects", {
   unlink(temp_line)
 })
 
-# Test 6: Default parameters work
 test_that("default type and dimensions work", {
   test_plot <- ggplot(mtcars, aes(x = wt, y = mpg)) +
     geom_point()
@@ -128,7 +122,6 @@ test_that("default type and dimensions work", {
   unlink(temp_path)
 })
 
-# Test 7: Special characters in filename
 test_that("handles special characters in filename", {
   test_plot <- ggplot(mtcars, aes(x = wt, y = mpg)) +
     geom_point()
@@ -142,14 +135,12 @@ test_that("handles special characters in filename", {
   unlink(temp_path)
 })
 
-# Test 8: Full file paths work
 test_that("full directory paths work", {
   test_plot <- ggplot(mtcars, aes(x = wt, y = mpg)) +
     geom_point()
   temp_dir <- tempdir()
   temp_path <- file.path(temp_dir, "subfolder_test.tiff")
 
-  # Note: subfolder would need to exist, so we'll keep it simple
   expect_no_error({
     save_dag(temp_path, test_plot)
   })
@@ -158,7 +149,6 @@ test_that("full directory paths work", {
   unlink(temp_path)
 })
 
-# Test 9: Overwrite existing file
 test_that("can overwrite existing file", {
   test_plot <- ggplot(mtcars, aes(x = wt, y = mpg)) +
     geom_point()
@@ -167,7 +157,6 @@ test_that("can overwrite existing file", {
   save_dag(temp_path, test_plot, width = 10, height = 8)
   first_size <- file.info(temp_path)$size
 
-  # Save again with different dimensions
   save_dag(temp_path, test_plot, width = 20, height = 20)
   second_size <- file.info(temp_path)$size
 
@@ -181,7 +170,6 @@ test_that("can overwrite existing file", {
 # compute_node_boxes #
 ######################
 
-# Test 1: Basic functionality - function runs and returns correct structure
 test_that("returns data frame with expected columns", {
   nodes <- data.frame(
     label = c("A", "B", "C"),
@@ -200,7 +188,6 @@ test_that("returns data frame with expected columns", {
   expect_true(all(c("label", "x", "y", "box_w_cm", "box_h_cm", "half_w", "half_h") %in% names(result)))
 })
 
-# Test 2: Number of rows preserved
 test_that("preserves number of rows", {
   nodes <- data.frame(
     label = c("Node1", "Node2", "Node3", "Node4", "Node5"),
@@ -218,7 +205,6 @@ test_that("preserves number of rows", {
   expect_equal(nrow(result), nrow(nodes))
 })
 
-# Test 3: Different text lengths produce different box dimensions
 test_that("longer text produces larger boxes", {
   nodes <- data.frame(
     label = c("A", "VeryLongLabel", "Short"),
@@ -233,12 +219,10 @@ test_that("longer text produces larger boxes", {
     ylim = c(0, 5)
   )
 
-  # Row 2 (VeryLongLabel) should have largest dimensions
   expect_true(result$box_w_cm[2] > result$box_w_cm[1])
   expect_true(result$box_h_cm[2] >= result$box_h_cm[1])
 })
 
-# Test 4: Unit conversion - mm to pt
 test_that("mm unit converts correctly to pt", {
   nodes <- data.frame(label = "Test")
 
@@ -254,7 +238,7 @@ test_that("mm unit converts correctly to pt", {
   result_mm <- compute_node_boxes(
     nodes,
     label_col = "label",
-    text_size = 6, # ~6mm ≈ 18pt (since 72pt = 25.4mm)
+    text_size = 6,
     size.unit = "mm",
     xlim = c(0, 10),
     ylim = c(0, 10)
@@ -263,7 +247,6 @@ test_that("mm unit converts correctly to pt", {
   expect_equal(nrow(result_pt), nrow(result_mm))
 })
 
-# Test 5: Invalid size.unit throws error
 test_that("invalid size.unit throws error", {
   nodes <- data.frame(label = "Test")
 
@@ -279,7 +262,6 @@ test_that("invalid size.unit throws error", {
   )
 })
 
-# Test 6: Padding is applied symmetrically
 test_that("padding adds to both width and height", {
   nodes <- data.frame(label = "X")
 
@@ -303,7 +285,6 @@ test_that("padding adds to both width and height", {
   expect_true(result_with_padding$box_h_cm > result_no_padding$box_h_cm)
 })
 
-# Test 7: Different fontfaces affect dimensions
 test_that("bold fontface affects text dimensions", {
   nodes <- data.frame(label = "BoldText")
 
@@ -328,7 +309,6 @@ test_that("bold fontface affects text dimensions", {
   expect_gte(result_bold$box_w_cm, result_plain$box_w_cm - 0.1) # Allow small tolerance
 })
 
-# Test 8: half_w and half_h calculation (for centering)
 test_that("half dimensions are half of box dimensions scaled to data units", {
   nodes <- data.frame(label = "Test")
 
@@ -356,7 +336,6 @@ test_that("half dimensions are half of box dimensions scaled to data units", {
   expect_equal(result$half_h[1], expected_half_h, tolerance = 0.01)
 })
 
-# Test 9: Empty character strings handled
 test_that("empty labels produce minimal boxes", {
   nodes <- data.frame(
     label = c("", "Text", ""),
@@ -376,35 +355,14 @@ test_that("empty labels produce minimal boxes", {
   expect_true(all(result$box_h_cm >= 0))
 })
 
-# Test 10: Special characters in labels
-# test_that("special characters handled correctly", {
-#   nodes <- data.frame(
-#     label = c("@#$%", "日本語", "emoji 🎉", "tab\tchar"),
-#     x = 1:4,
-#     y = 1:4
-#   )
-#
-#   expect_no_error({
-#     result <- compute_node_boxes(
-#       nodes,
-#       label_col = "label",
-#       xlim = c(0, 10),
-#       ylim = c(0, 10)
-#     )
-#   })
-#
-#   expect_equal(nrow(result), 4)
-# })
 
-# Test 11: Different plot dimensions affect scaling
 test_that("plot dimensions scale box_to_data units correctly", {
   nodes <- data.frame(label = "ScaleTest")
 
-  # Same box in cm, different plot sizes → different data units
   result_narrow <- compute_node_boxes(
     nodes,
     label_col = "label",
-    plot_width_cm = 10, # Narrower
+    plot_width_cm = 10,
     xlim = c(0, 10),
     ylim = c(0, 10)
   )
@@ -417,12 +375,10 @@ test_that("plot dimensions scale box_to_data units correctly", {
     ylim = c(0, 10)
   )
 
-  # Same box_w_cm but different half_w because x_data_per_cm differs
   expect_equal(result_narrow$box_w_cm, result_wide$box_w_cm)
   expect_true(result_narrow$half_w != result_wide$half_w)
 })
 
-# Test 12: Preserve original columns
 test_that("original node columns are preserved", {
   nodes <- data.frame(
     id = c(100, 200, 300),
@@ -445,7 +401,6 @@ test_that("original node columns are preserved", {
   expect_equal(result$name, nodes$name)
 })
 
-# Test 13: Single node
 test_that("single node is handled correctly", {
   nodes <- data.frame(label = "Single", x = 5, y = 5)
 
@@ -460,7 +415,6 @@ test_that("single node is handled correctly", {
   expect_s3_class(result, "data.frame")
 })
 
-# Test 14: Missing label column throws error
 test_that("missing label column throws error", {
   nodes <- data.frame(name = c("A", "B"))
 
@@ -474,7 +428,6 @@ test_that("missing label column throws error", {
   )
 })
 
-# Test 15: Very large text sizes
 test_that("large text sizes don't cause errors", {
   nodes <- data.frame(label = c("Small", "Huge"))
 
@@ -521,7 +474,6 @@ test_that("integration test with realistic network plot nodes", {
 # line_rect_intersection #
 ##########################
 
-# Test 1: Basic functionality - horizontal line hitting right side
 test_that("returns named vector with x and y coordinates", {
   result <- line_rect_intersection(
     x0 = 0, y0 = 5,
@@ -535,7 +487,6 @@ test_that("returns named vector with x and y coordinates", {
   expect_equal(result, c(x = 9, y = 5))
 })
 
-# Test 2: Horizontal line intersects right side of rectangle
 test_that("horizontal line from left hits right side", {
   result <- line_rect_intersection(
     x0 = 0, y0 = 5,
@@ -547,7 +498,6 @@ test_that("horizontal line from left hits right side", {
   expect_equal(result["y"], c(y = 5), tolerance = 1e-10)
 })
 
-# Test 3: Horizontal line intersects left side of rectangle
 test_that("horizontal line from right hits left side", {
   result <- line_rect_intersection(
     x0 = 10, y0 = 5,
@@ -555,12 +505,10 @@ test_that("horizontal line from right hits left side", {
     half_w = 2, half_h = 1.5
   )
 
-  # Should hit at xmin = 5 - 2 = 3, y should be 5
   expect_equal(result["x"], c(x = 1), tolerance = 1e-10)
   expect_equal(result["y"], c(y = 5), tolerance = 1e-10)
 })
 
-# Test 4: Vertical line intersects top side
 test_that("vertical line from bottom hits top side", {
   result <- line_rect_intersection(
     x0 = 5, y0 = 0,
@@ -568,12 +516,10 @@ test_that("vertical line from bottom hits top side", {
     half_w = 2, half_h = 1.5
   )
 
-  # Should hit at xmax/min = 5, ymax = 5 + 1.5 = 6.5
   expect_equal(result["x"], c(x = 5), tolerance = 1e-10)
   expect_equal(result["y"], c(y = 9.5), tolerance = 1e-10)
 })
 
-# Test 5: Vertical line intersects bottom side
 test_that("vertical line from top hits bottom side", {
   result <- line_rect_intersection(
     x0 = 5, y0 = 10,
@@ -585,9 +531,8 @@ test_that("vertical line from top hits bottom side", {
   expect_equal(result["y"], c(y = 0.5), tolerance = 1e-10)
 })
 
-# Test 7: Line starting outside, ending at center
 test_that("line from outside to center hits near-side boundary", {
-  # Start far left, end at center
+
   result <- line_rect_intersection(
     x0 = -10, y0 = 5,
     x1 = 5, y1 = 5,
@@ -598,9 +543,8 @@ test_that("line from outside to center hits near-side boundary", {
   expect_equal(result["y"], c(y = 5), tolerance = 1e-10)
 })
 
-# Test 8: Multiple intersections possible - closest is chosen
 test_that("when multiple intersections exist, closest to start is chosen", {
-  # Line passing completely through rectangle
+
   result <- line_rect_intersection(
     x0 = 0, y0 = 5,
     x1 = 20, y1 = 5,
@@ -618,12 +562,10 @@ test_that("line aimed at corner returns corner point", {
     half_w = 2, half_h = 1.5
   )
 
-  # Should hit the corner (7, 6.5)
   expect_equal(result["x"], c(x = 6.12), tolerance = 1e-1)
   expect_equal(result["y"], c(y = 5.68), tolerance = 1e-2)
 })
 
-# Very large rectangle
 test_that("handles very large rectangles correctly", {
   result <- line_rect_intersection(
     x0 = 0, y0 = 0,
@@ -631,16 +573,14 @@ test_that("handles very large rectangles correctly", {
     half_w = 100, half_h = 100
   )
 
-  # Large rectangle, should hit one of the near edges
   expect_true(!is.na(result["x"]))
   expect_true(!is.na(result["y"]))
 })
 
-# Near-horizontal line (small dy)
 test_that("near-horizontal line handled correctly", {
   result <- line_rect_intersection(
-    x0 = 0, y0 = 5.1, # Slightly above center line
-    x1 = 10, y1 = 5.2, # Small slope
+    x0 = 0, y0 = 5.1,
+    x1 = 10, y1 = 5.2,
     half_w = 2, half_h = 1.5
   )
 
@@ -648,11 +588,10 @@ test_that("near-horizontal line handled correctly", {
   expect_true(!is.na(result["y"]))
 })
 
-# Near-vertical line (small dx)
 test_that("near-vertical line handled correctly", {
   result <- line_rect_intersection(
-    x0 = 5.1, y0 = 0, # Slightly right of center line
-    x1 = 5.2, y1 = 10, # Small x change
+    x0 = 5.1, y0 = 0,
+    x1 = 5.2, y1 = 10,
     half_w = 2, half_h = 1.5
   )
 
@@ -660,7 +599,6 @@ test_that("near-vertical line handled correctly", {
   expect_true(!is.na(result["y"]))
 })
 
-# Identical start and end points (degenerate line)
 test_that("degenerate line (zero length) returns center", {
   result <- line_rect_intersection(
     x0 = 0, y0 = 0,
@@ -668,13 +606,11 @@ test_that("degenerate line (zero length) returns center", {
     half_w = 2, half_h = 1.5
   )
 
-  # With no direction, should return center as fallback
   expect_equal(result["x"], c(x = 0), tolerance = 1e-10)
   expect_equal(result["y"], c(y = 0), tolerance = 1e-10)
 })
 
 
-# Return value is numeric
 test_that("return values are numeric type", {
   result <- line_rect_intersection(
     x0 = 0, y0 = 5,
@@ -686,7 +622,7 @@ test_that("return values are numeric type", {
 })
 
 test_that("line perpendicular to edge hits that edge directly", {
-  # Horizontal line perpendicular to vertical edge
+
   result <- line_rect_intersection(
     x0 = 10, y0 = 5,
     x1 = 0, y1 = 5,
@@ -697,9 +633,8 @@ test_that("line perpendicular to edge hits that edge directly", {
   expect_equal(result["y"], c(y = 5), tolerance = 1e-10)
 })
 
-# Integration test - simulate arrow to node
 test_that("integration: simulates arrow endpoint calculation", {
-  # Simulating arrow from one node center to another node's boundary
+
   arrow_start_x <- 10
   arrow_start_y <- 10
   target_node_center_x <- 50
@@ -713,7 +648,6 @@ test_that("integration: simulates arrow endpoint calculation", {
     half_w = target_half_width, half_h = target_half_height
   )
 
-  # Arrow should hit the left edge of target node
   expect_equal(
     result["x"],
     c(x = target_node_center_x - target_half_width),
@@ -732,9 +666,8 @@ test_that("correctly identifies closest intersection by distance", {
   expect_equal(result["x"], c(x = 199), tolerance = 1e-10)
 })
 
-# Visual regression test for plotting applications
 test_that("results are suitable for plotting arrows", {
-  # Test a batch of connections
+
   results <- list()
 
   for (i in 1:10) {
@@ -747,7 +680,6 @@ test_that("results are suitable for plotting arrows", {
       half_w = 5, half_h = 5
     )
 
-    # Verify all results have valid x, y on boundary
     expect_true(r["x"] >= 45 && r["x"] <= 55)
     expect_true(r["y"] >= 20 && r["y"] <= 30)
   }
@@ -767,7 +699,6 @@ it("throws informative error when nodes_df missing required columns", {
     fixed = TRUE
   )
 
-  # Verify error message lists the missing columns
   expect_match(err_msg$message, "node_id", fixed = TRUE)
   expect_match(err_msg$message, "half_w", fixed = TRUE)
   expect_match(err_msg$message, "half_h", fixed = TRUE)
@@ -781,7 +712,7 @@ it("throws informative error when edges_df missing required columns", {
     half_w = c(1.5, 2.0),
     half_h = c(1.0, 1.5)
   )
-  edges <- data.frame(to = c("B"), pvalue = c(0.01)) # Missing from, curvature
+  edges <- data.frame(to = c("B"), pvalue = c(0.01)) #
 
   err_msg <- expect_error(
     adjust_edges_by_box(edges, nodes),
@@ -789,7 +720,6 @@ it("throws informative error when edges_df missing required columns", {
     fixed = TRUE
   )
 
-  # Verify error message lists the missing columns
   expect_match(err_msg$message, "from", fixed = TRUE)
   expect_match(err_msg$message, "curvature", fixed = TRUE)
 })
@@ -809,7 +739,7 @@ create_test_edges <- function() {
   data.frame(
     from = c("A", "A", "B", "C", "D"),
     to = c("B", "C", "C", "D", "A"),
-    curvature = c(0, 1, 0, 0, 0), # 0 = straight, 1 = curved
+    curvature = c(0, 1, 0, 0, 0),
     pvalue = c(0.01, 0.30, 0.05, 0.001, 0.1),
     est = c(0.5, 0.2, -0.3, 0.8, -0.1),
     curvature_amount = c(0, 0.15, 0, 0, 0)
@@ -850,7 +780,6 @@ describe("adjust_edges_by_box coordinate adjustment", {
     start_x <- result$xstart_adj[1]
     start_y <- result$ystart_adj[1]
 
-    # Allow tolerance for floating point
     expect_lte(start_x, 1.6)
     expect_gte(start_x, -1.6)
     expect_lte(start_y, 1.1)
@@ -863,12 +792,9 @@ describe("adjust_edges_by_box coordinate adjustment", {
 
     result <- adjust_edges_by_box(edges, nodes)
 
-    # For edge A->B (first row), end should be at B's boundary
-    # B is at (5, 3) with half_w=2.0, half_h=1.5
     end_x <- result$xend_adj[1]
     end_y <- result$yend_adj[1]
 
-    # Boundary range: x=[3, 7], y=[1.5, 4.5]
     expect_lte(end_x, 7.1)
     expect_gte(end_x, 2.9)
     expect_lte(end_y, 4.6)
@@ -880,7 +806,7 @@ describe("adjust_edges_by_box vertical lines", {
   it("detects perfectly vertical lines", {
     nodes <- data.frame(
       node_id = c("U", "V"),
-      x = c(5, 5), # Same x
+      x = c(5, 5),
       y = c(0, 10),
       half_w = c(1.0, 1.0),
       half_h = c(1.0, 1.0)
@@ -901,7 +827,7 @@ describe("adjust_edges_by_box vertical lines", {
 
 describe("adjust_edges_by_box integration", {
   it("produces coordinates suitable for draw_dag", {
-    # Verify all required columns for draw_dag exist
+
     edges <- create_test_edges() |> preprocess_edges_df()
     nodes <- create_test_nodes()
 
@@ -1050,7 +976,6 @@ describe("plot_dag basic functionality", {
 
     result <- plot_dag(nodes, edges)
 
-    # Should have: geom_label for nodes + multiple geom layers for edges
     expect_gte(length(result$layers), 5)
   })
 })
@@ -1090,9 +1015,8 @@ describe("plot_dag footnote handling", {
       footnote_size = 20
     )
 
-    # Verify caption exists and plot layer has been added
     expect_true(!is.null(result$labels$caption))
-    expect_gte(length(result$layers), 5) # Should still render properly
+    expect_gte(length(result$layers), 5)
   })
 
   it("handles empty string footnote", {
@@ -1101,7 +1025,6 @@ describe("plot_dag footnote handling", {
 
     result <- plot_dag(nodes, edges, footnote = "")
 
-    # Empty string is not NULL, so caption should be set
     expect_false(is.null(result$labels$caption))
     expect_equal(result$labels$caption, "")
   })
@@ -1200,7 +1123,7 @@ withr::with_seed(
       edges <- data.frame(
         from = c("A", "A"),
         to = c("B", "B"),
-        curvature = c(0, 1), # Same endpoints, different curvature
+        curvature = c(0, 1),
         pvalue = c(0.01, 0.30),
         est = c(0.8, 0.2),
         ci.lower = c(0.4, -0.1),
@@ -1228,7 +1151,7 @@ describe("plot_dag rendering verification", {
 
     result <- plot_dag(nodes, edges)
 
-    # Test standard ggplot2 operations
+
     expect_no_error({
       result_plus <- result + labs(title = "Test Title")
     })
