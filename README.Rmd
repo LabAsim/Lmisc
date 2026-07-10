@@ -1,0 +1,21 @@
+---
+output: github_document
+always_allow_html: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<!-- badges: start -->
+
+
+<!-- badges: end -->
+
+# Status
+
+This package includes functions that I regularly use.
+
+# Learning More
+
+To learn more, check out the vignettes.
