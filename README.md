@@ -1,20 +1,8 @@
----
-output: github_document
-always_allow_html: true
----
-
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
-```
 
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/LabAsim/Lmisc/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/LabAsim/Lmisc/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
-
 
 # Lmisc
 
