@@ -1347,3 +1347,57 @@ withr::with_seed(
     )
 }
     )
+
+
+withr::with_seed(
+  seed=123,
+  code = {
+    it(
+      "diagonal lines",
+      {
+        # Skip during check if VDIFR_SKIP_CHECK is set
+        if (identical(Sys.getenv("VDIFR_SKIP_CHECK"), "true")) {
+          skip("Skipping visual tests during devtools::check")
+        }
+        nodes <- data.frame(
+          node_id = c("A", "C", "B", "D"),
+          label = c("A", "C", "B", "D"),
+          x = c(0, 14, 14, 0),
+          y = c(0, 3, 0, 3)
+        )
+        edges <- data.frame(
+          from = c(
+            "A", "C", "B", "D", "B", "C"
+          ),
+          to = c(
+            "B", "D", "C", "A", "D", "A"
+          ),
+          curvature = c(0, 0, 0, 0, 0, 0),
+          pvalue = c(0.1, 0.30, 0.5, 0.5, 0.5, 0.005),
+          est = c(
+            0.2, 0.15, -0.25, -0.3, -0.35, -0.4
+          ),
+          ci.lower = c(0.4, 0.1, -0.6, -0.3, -0.3, -0.3),
+          ci.upper = c(1.2, 0.9, 0.0, -0.3, -0.3, -0.3),
+          hjust = c(0.5, 0.5, 0.5, 0.5, 0.3, 0.8),
+          vjust = c(0.5, 0.5, 0.50, 0.5, 0, 0),
+          curvature_amount = c(
+            0, 0, 0, 0,0,0
+          )
+        )
+        # Set the gap values
+        edges$gap <- c(-1, -3, -1, -3, -1,-3)
+        p <- plot_dag(nodes, edges, ylim = c(-2, 4), xlim = c(-2, 16), text_size = 3)
+        # p
+        vdiffr::expect_doppelganger(
+          "horizontal lines",
+          p
+        )
+
+      }
+    )
+  }
+)
+
+
+
