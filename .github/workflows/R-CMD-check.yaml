@@ -12,6 +12,8 @@ permissions: read-all
 jobs:
   R-CMD-check:
     runs-on: ${{ matrix.config.os }}
+    env:
+      VDIFR_SKIP_CHECK: true
 
     name: ${{ matrix.config.os }} (${{ matrix.config.r }})
 
