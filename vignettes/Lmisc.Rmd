@@ -42,7 +42,7 @@ nodes <- data.frame(
 ```
 
 
-This dataframe describes the relationship between the aforementioned nodes.
+Th dataframe below describes the relationship between the aforementioned nodes.
 
 * `from` and `to` indicate the start and the end node.
 
@@ -63,16 +63,6 @@ Default value is 1. If you need granular control, specify the values for each re
 
 * `curvature_amount` controls the curvature of the curved paths. These follow the notation of ggplot: positive values mean a right-hand curve while negative values a left-hand curve.
 
-
-### Explanation of `curvature_amount`
-
-Imagine you're walking along the path from start to end:
-
-| Curvature Sign | Curve Direction | What It Looks Like |
-|----------------|-----------------|--------------------|
-| Positive (+)   | Right-hand curve | Path bends to your right as you walk forward. |
-| Negative (−)   | Left-hand curve  | Path bends to your left as you walk forward. |
-| Zero (0)       | Straight line    | No bending; direct line. |
 
 
 ```{r}
@@ -111,6 +101,54 @@ p <- plot_dag(nodes, edges, ylim = c(-0.2, 3.2), xlim = c(-0.2, 14.2), text_size
 print(p)
 ```
 
+
+## Explanation of `curvature_amount`
+
+Imagine you're walking along the path from start to end:
+
+| Curvature Sign | Curve Direction | What It Looks Like |
+|----------------|-----------------|--------------------|
+| Positive (+)   | Right-hand curve | Path bends to your right as you walk forward. |
+| Negative (−)   | Left-hand curve  | Path bends to your left as you walk forward. |
+| Zero (0)       | Straight line    | No bending; direct line. |
+
+
+
+```{r}
+#| label: plot_curved_amount
+#| echo: True
+#| warning: False
+#| fig-width: 10
+#| fig-height: 8
+edges <- data.frame(
+  from = c(
+    "A", "C", "B", "D"
+  ),
+  to = c(
+    "B", "D", "C", "A"
+  ),
+  curvature = c(1, 1, 1, 1),
+  pvalue = c(0.1, 0.30, 0.5, 0.5),
+  est = c(
+    0.2, 0.15, -0.25, -0.3
+  ),
+  ci.lower = c(0.4, 0.1, -0.6, -0.3),
+  ci.upper = c(1.2, 0.9, 0.0, -0.3),
+  hjust = c(0.5, 0.5, 0.5, 0.5),
+  vjust = c(0.5, 0.5, 0.50, 0.5),
+  curvature_amount = c(
+    0.2, -0.2, 0.2, -0.2
+  )
+)
+p <- plot_dag(nodes, edges, ylim = c(-2, 3.2), xlim = c(-0.2, 15), text_size = 3)
+print(p)
+```
+
+When we walk from `D` to `A` (or `C` to `D`) with a negative value (`curvature_amount = -0.2`),
+the curved path is left-handed. 
+When we walk from `B` to `C` (or from `A` to `B`) with a positive value,
+the path is right-handed (`curvature_amount = 0.2`).
+
 ### Control of gap
 
 We can control the length of the lines by using the `gap` argument.
@@ -118,11 +156,11 @@ We can control the length of the lines by using the `gap` argument.
 By using 0, we say that the lines should start from the center of the boxes.
 1 is the default. 
 
-* Horizontal: We can assign a *positive* value to shrink the lines
-* Vertical: We can assign a *negative* value to shrink the lines
+* We can assign a *positive* value to increase the length of the lines
+* We can assign a *negative* value to shrink the lines
 
 ```{r}
-#| label: plot2
+#| label: plot_gap
 #| echo: True
 #| warning: False
 #| fig-width: 10
@@ -149,10 +187,14 @@ edges <- data.frame(
   )
 )
 
-edges$gap <- c(-1, -2, -1, -2, -1,-2)
+# Set the gap values
+edges$gap <- c(-1, -3, -1, -3, -1,-3)
 
 plot_dag(nodes, edges, ylim = c(-0.2, 3.2), xlim = c(-0.2, 14.2), text_size = 3)
 ```
+
+As you can see, those relationships that have `-3` as their gap values have their
+length shrinken.
 
 
 
