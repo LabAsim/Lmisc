@@ -1,3 +1,21 @@
+# Resolve R CMD check NOTE: no visible binding for global variable
+utils::globalVariables(
+  c(
+    "x", "y", "label", "half_w", "half_h",
+    "x_from", "y_from", "x_to", "y_to",
+    "half_w_from", "half_h_from", "half_w_to", "half_h_to",
+    "is_vertical", "is_horizontal",
+    "goes_up", "goes_down", "goes_right", "goes_left",
+    "box_w_cm", "box_h_cm",
+    "curvature", "curvature_amount",
+    "pvalue", "est", "ci.lower", "ci.upper",
+    "hjust", "vjust", "label_position",
+    "xstart_adj", "ystart_adj", "xend_adj", "yend_adj",
+    "row_id", "gap"
+  )
+)
+
+
 #' Save a DAG plot to file
 #'
 #' The function opens the appropriate graphics device based on the file extension
@@ -38,6 +56,7 @@ save_dag <- function(path, plot, width = 50, height = 25) {
     stop("Unsupported file extension '", ext, "'. Use .tiff or .png")
   }
   if (type == "tiff") {
+    # Alternative agg_tiff() for better graphics
     tiff(
       path,
       width = width,
@@ -374,7 +393,11 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
   out <- edges_df |>
     left_join(
       nodes_df |>
-        dplyr::select(node_id, x, y, half_w, half_h) |>
+        dplyr::select(
+          all_of(
+            c("node_id", "x", "y", "half_w", "half_h")
+          )
+        )|>
         dplyr::rename(
           x_from = x,
           y_from = y,
@@ -385,7 +408,11 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
     ) |>
     left_join(
       nodes_df |>
-        dplyr::select(node_id, x, y, half_w, half_h) |>
+        dplyr::select(
+          all_of(
+            c("node_id", "x", "y", "half_w", "half_h")
+          )
+        )|>
         dplyr::rename(
           x_to = x,
           y_to = y,
@@ -775,6 +802,7 @@ preprocess_edges_df <- function(edges_df){
 #' @param footnote_size Controls the size of the footnote text
 #' @import ggplot2 dplyr
 #' @importFrom purrr map
+#' @importFrom geomtextpath geom_textsegment geom_textcurve
 #' @export
 plot_dag <- function(
   nodes,
@@ -821,14 +849,15 @@ plot_dag <- function(
     ##################################
     geomtextpath::geom_textsegment(
       data = edges_adj |>
-        dplyr::filter(curvature == 0, pvalue <= 0.05),
+        dplyr::filter(
+          curvature == 0, pvalue <= 0.05),
       aes(
         x = xstart_adj,
         y = ystart_adj,
         xend = xend_adj,
         yend = yend_adj,
         label = paste0(
-          est, # "β=",
+          est,
           "\n(",
           ci.lower,
           " — ",
@@ -962,14 +991,13 @@ plot_dag <- function(
   ################################
   # Curved non-significant paths #
   ################################
-  geom_layers <- edges_adj %>%
-    filter(curvature == 1, pvalue > 0.05) %>%
-    # distinct(curvature_amount) %>%
-    pull(curvature_amount) %>%
+  geom_layers <- edges_adj |>
+    filter(curvature == 1, pvalue > 0.05) |>
+    pull(curvature_amount) |>
     purrr::map(
       function(crv) {
         geomtextpath::geom_textcurve(
-          data = edges_adj %>%
+          data = edges_adj  |>
             dplyr::filter(
               curvature == 1, pvalue > 0.05, curvature_amount == crv
             ),
@@ -987,13 +1015,13 @@ plot_dag <- function(
   ############################
   # Curved significant paths #
   ############################
-  geom_layers_curved_sign_paths <- edges_adj %>%
-    filter(curvature == 1, pvalue <= 0.05) %>%
-    pull(curvature_amount) %>%
+  geom_layers_curved_sign_paths <- edges_adj |>
+    filter(curvature == 1, pvalue <= 0.05) |>
+    pull(curvature_amount) |>
     purrr::map(
       function(crv) {
         geomtextpath::geom_textcurve(
-          data = edges_adj %>%
+          data = edges_adj |>
             dplyr::filter(
               curvature == 1, pvalue <= 0.05, curvature_amount == crv
             ),
