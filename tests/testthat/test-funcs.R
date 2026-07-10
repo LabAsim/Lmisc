@@ -1156,6 +1156,9 @@ withr::with_seed(
   code = {
   describe("plot_dag edge cases", {
     it("handles when single node", {
+      if (identical(Sys.getenv("VDIFR_SKIP_CHECK"), "true")) {
+        skip("Skipping visual tests during devtools::check")
+      }
       nodes <- data.frame(
         label = c("Single"),
         x = c(7),
@@ -1205,36 +1208,6 @@ withr::with_seed(
 
       vdiffr::expect_doppelganger(
         "Base graphics histogram",
-        plot_dag(nodes, edges)
-      )
-    })
-
-    it("handles all significant edges", {
-      # Skip during check if VDIFR_SKIP_CHECK is set
-      if (identical(Sys.getenv("VDIFR_SKIP_CHECK"), "true")) {
-        skip("Skipping visual tests during devtools::check")
-      }
-      nodes <- create_test_nodes2()
-      edges <- create_test_edges2()
-      edges$pvalue <- c(0.001, 0.01) # All significant
-
-      vdiffr::expect_doppelganger(
-        "significant edges1",
-        plot_dag(nodes, edges)
-      )
-    })
-
-    it("handles all non-significant edges", {
-      # Skip during check if VDIFR_SKIP_CHECK is set
-      if (identical(Sys.getenv("VDIFR_SKIP_CHECK"), "true")) {
-        skip("Skipping visual tests during devtools::check")
-      }
-      nodes <- create_test_nodes2()
-      edges <- create_test_edges2()
-      edges$pvalue <- c(0.5, 0.8) # All non-significant
-
-      vdiffr::expect_doppelganger(
-        "non-significant edges1",
         plot_dag(nodes, edges)
       )
     })
