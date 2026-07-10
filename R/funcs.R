@@ -132,7 +132,7 @@ compute_node_boxes <- function(
   fontsize_pt <- if (size.unit == "pt") {
     text_size
   } else if (size.unit == "mm") {
-    text_size / (25.4 / 72) # 1 pt = 25.4/72 ≈ 0.3528 mm
+    text_size / (25.4 / 72)
   } else {
     stop("Only 'pt' and 'mm' are supported.")
   }
@@ -271,7 +271,7 @@ line_rect_intersection <- function(
   pt <- candidates[[which.min(dists)]]
 
   # Apply gap offset alg the line direction
-  # Positive gap: moves FORWARD along line  το source and target boxes)
+  # Positive gap: moves FORWARD along line to source and target boxes)
   # Negative gap: moves away from source and target boxes
   pt["x"] <- pt["x"] + ux #* gap
   pt["y"] <- pt["y"] + uy #* gap
@@ -319,7 +319,7 @@ line_rect_intersection <- function(
 #'   \describe{
 #'     \item{from}{Character or integer identifier of the source node}
 #'     \item{to}{Character or integer identifier of the target node}
-#'     \item{curvature}{Numeric indicator; 1 for curved edges, ≠ 1 for straight}
+#'     \item{curvature}{Numeric indicator; 1 for curved edges, 0 for straight}
 #'   }
 #'   Additional columns are preserved in the output.
 #' @param nodes_df A data frame containing node information with required columns:
@@ -350,7 +350,7 @@ line_rect_intersection <- function(
 #' center to node center intersects the perimeter of each node's bounding box.
 #'
 #' **Horizontal Lines**: For efficiency and visual consistency, applies a simplified
-#' offset (0.5 × half-width) instead of full intersection calculation. This keeps
+#' offset (0.5 * half-width) instead of full intersection calculation. This keeps
 #' horizontal arrows visibly separated from both nodes.
 #'
 #' **Curved Lines**: Applies custom offsets (quarter width, full height) to ensure
@@ -643,27 +643,27 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
           row$xend_adj <- row$x_to
           row$yend_adj <- row$y_to + row$half_h_to # Top of target
 
-          # Upwards + Right (↗️)
+          # Upwards + Right
         } else if (row$goes_up && row$goes_right) {
           row$xstart_adj <- row$x_from + row$half_w_from # Right of source
           row$ystart_adj <- row$y_from
           row$xend_adj <- row$x_to
           row$yend_adj <- row$y_to - row$half_h_to # Bottom of target
 
-          # Upwards + Left (↖️)
+          # Upwards + Left
         } else if (row$goes_up && row$goes_left) {
           row$xstart_adj <- row$x_from - row$half_w_from # Left of source
           row$ystart_adj <- row$y_from
           row$xend_adj <- row$x_to
           row$yend_adj <- row$y_to - row$half_h_to # Bottom of target
 
-          # Downwards + Right (↘️)
+          # Downwards + Right
         } else if (row$goes_down && row$goes_right) {
           row$xstart_adj <- row$x_from
           row$ystart_adj <- row$y_from - row$half_h_from # Bottom of source
           row$xend_adj <- row$x_to - row$half_w_to # left of source
           row$yend_adj <- row$y_to
-          # Downwards + Left (↙️)
+          # Downwards + Left
         } else if (row$goes_down && row$goes_left) {
           row$xstart_adj <- row$x_from - row$half_w_from # left of source
           row$ystart_adj <- row$y_from
@@ -860,7 +860,7 @@ plot_dag <- function(
           est,
           "\n(",
           ci.lower,
-          " — ",
+          " \u2014 ",
           ci.upper,
           ")"
         ),
@@ -886,10 +886,10 @@ plot_dag <- function(
         xend = xend_adj,
         yend = yend_adj,
         label = paste0(
-          est, # "β=",
+          est,
           "\n(",
           ci.lower,
-          " — ",
+          " \u2014 ",
           ci.upper,
           ")"
         ),
@@ -932,7 +932,7 @@ plot_dag <- function(
           est,
           "\n(",
           ci.lower,
-          " — ",
+          " \u2014 ",
           ci.upper,
           ")"
         ),
@@ -976,7 +976,7 @@ plot_dag <- function(
           est,
           "\n(",
           ci.lower,
-          " — ",
+          " \u2014 ",
           ci.upper,
           ")"
         ),
@@ -1003,7 +1003,7 @@ plot_dag <- function(
             ),
           aes(
             x = xstart_adj, y = ystart_adj, xend = xend_adj, yend = yend_adj,
-            label = paste0(est, "\n(", ci.lower, " — ", ci.upper, ")"),
+            label = paste0(est, "\n(", ci.lower, " \u2014 ", ci.upper, ")"),
             hjust = hjust, vjust = vjust
           ),
           curvature = crv,
@@ -1027,7 +1027,7 @@ plot_dag <- function(
             ),
           aes(
             x = xstart_adj, y = ystart_adj, xend = xend_adj, yend = yend_adj,
-            label = paste0(est, "\n(", ci.lower, " — ", ci.upper, ")"),
+            label = paste0(est, "\n(", ci.lower, " \u2014 ", ci.upper, ")"),
             hjust = hjust, vjust = vjust
           ),
           curvature = crv,
