@@ -21,6 +21,10 @@ jobs:
         config:
           - {os: macos-latest,   r: 'release',  vdifr-skip-check: 'true'}
           - {os: windows-latest, r: 'release',  vdifr-skip-check: 'true'}
+          # Snapshot fail on Windows both locally and on the cloud.
+          # The plots that are produced are not right.
+          # I don't know why. For this reason,
+          # they are enabled only on Ubuntu through github actions.
           - {os: ubuntu-latest,  r: 'devel',    http-user-agent: 'release', vdifr-skip-check: 'true'}
             # Don't skip on Ubuntu release
           - {os: ubuntu-latest,  r: 'release',  vdifr-skip-check: 'false'}
