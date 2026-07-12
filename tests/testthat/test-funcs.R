@@ -1303,6 +1303,107 @@ withr::with_seed(
   }
 )
 
+
+
+withr::with_seed(
+  seed=123,
+  code = {
+    it(
+      "Curved paths positive curvature",
+      {
+        # Skip during check if VDIFR_SKIP_CHECK is set
+        if (identical(Sys.getenv("VDIFR_SKIP_CHECK"), "true")) {
+          skip("Skipping visual tests during devtools::check")
+        }
+        nodes <- create_test_nodes2()
+        edges <- data.frame(
+          from = c(
+            "Input", "Hidden", "Output", "InputVertical",
+            "InputVertical", "Hidden", "Output", "Hidden"
+          ),
+          to = c(
+            "Hidden", "Output", "Hidden", "Input",
+            "Output", "InputVertical", "InputVertical", "Input"
+          ),
+          curvature = c(1, 1, 1, 1, 1, 1, 1, 1),
+          pvalue = c(0.01, 0.30, 0.005, 0.5, 0.5, 0.5, 0.005, 0.5),
+          est = c(
+            0.2, 0.15, -0.25, -0.3,
+            -0.35, -0.4, -0.4, 0.2
+          ),
+          ci.lower = c(0.4, 0.1, -0.6, -0.3, -0.3, -0.3, -0.3, -0.3),
+          ci.upper = c(1.2, 0.9, 0.0, -0.3, -0.3, -0.3, -0.3, -0.3),
+          hjust = c(0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5),
+          vjust = c(0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5),
+          curvature_amount = c(
+            0.2, 0.2, 0.25, 0.3,
+            0.35, 0.4, 0.4, 0.2
+          )
+        )
+        edges$label_position <- c(1, 0.5, 1, 1, 1, 1, 1, 1)
+        p <- plot_dag(nodes, edges, ylim = c(-2, 7), xlim = c(-2, 16), text_size = 3)
+        # p
+        vdiffr::expect_doppelganger(
+          "Curved paths positive curvature",
+          p
+        )
+
+      }
+    )
+  }
+)
+
+
+withr::with_seed(
+  seed=123,
+  code = {
+    it(
+      "Curved paths negative curvature",
+      {
+        # Skip during check if VDIFR_SKIP_CHECK is set
+        if (identical(Sys.getenv("VDIFR_SKIP_CHECK"), "true")) {
+          skip("Skipping visual tests during devtools::check")
+        }
+        nodes <- create_test_nodes2()
+        edges <- data.frame(
+          from = c(
+            "Input", "Hidden", "Output", "InputVertical",
+            "InputVertical", "Hidden", "Output", "Hidden"
+          ),
+          to = c(
+            "Hidden", "Output", "Hidden", "Input",
+            "Output", "InputVertical", "InputVertical", "Input"
+          ),
+          curvature = c(1, 1, 1, 1, 1, 1, 1, 1),
+          pvalue = c(0.01, 0.30, 0.005, 0.5, 0.5, 0.5, 0.005, 0.5),
+          est = c(
+            0.2, 0.15, -0.25, -0.3,
+            -0.35, -0.4, -0.4, 0.2
+          ),
+          ci.lower = c(0.4, 0.1, -0.6, -0.3, -0.3, -0.3, -0.3, -0.3),
+          ci.upper = c(1.2, 0.9, 0.0, -0.3, -0.3, -0.3, -0.3, -0.3),
+          hjust = c(0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5),
+          vjust = c(0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5),
+          curvature_amount = c(
+            -0.2, -0.2, -0.25, -0.3,
+            -0.35, -0.4, -0.4, -0.2
+          )
+        )
+        edges$label_position <- c(1, 0.5, 1, 1, 1, 1, 1, 1)
+        p <- plot_dag(nodes, edges, ylim = c(-2, 7), xlim = c(-2, 16), text_size = 3)
+        # p
+        vdiffr::expect_doppelganger(
+          "Curved paths negative curvature",
+          p
+        )
+
+      }
+    )
+  }
+)
+
+
+
 withr::with_seed(
   seed=123,
   code = {

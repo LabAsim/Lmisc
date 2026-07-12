@@ -72,8 +72,6 @@ save_dag <- function(path, plot, width = 50, height = 25) {
       units = "cm",
       res = 300
     )
-  } else {
-    stop("Type not supported")
   }
   print(plot)
   dev.off()
