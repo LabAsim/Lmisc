@@ -18,7 +18,9 @@ Imports:
     dplyr (>= 1.2.1),
     ggplot2 (<= 4.0.3),
     geomtextpath,
-    purrr
+    purrr,
+    glue,
+    lavaan
 Suggests: 
     knitr,
     rmarkdown,
