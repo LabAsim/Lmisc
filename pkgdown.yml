@@ -2,8 +2,9 @@ pandoc: 3.8.3
 pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
+  How_to_use_it_with_Lavaan: How_to_use_it_with_Lavaan.html
   Lmisc: Lmisc.html
-last_built: 2026-07-22T15:46Z
+last_built: 2026-07-22T19:38Z
 urls:
   reference: https://labasim.github.io/lmisc/reference
   article: https://labasim.github.io/lmisc/articles

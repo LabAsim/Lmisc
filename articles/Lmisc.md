@@ -23,8 +23,8 @@ nodes <- data.frame(
   )
 ```
 
-Th dataframe below describes the relationship between the aforementioned
-nodes.
+The dataframe below describes the relationship between the
+aforementioned nodes.
 
 - `from` and `to` indicate the start and the end node.
 
