@@ -1,15 +1,15 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
-<url><loc>/404.html</loc></url>
-<url><loc>/articles/Lmisc.html</loc></url>
-<url><loc>/articles/index.html</loc></url>
-<url><loc>/authors.html</loc></url>
-<url><loc>/index.html</loc></url>
-<url><loc>/reference/adjust_edges_by_box.html</loc></url>
-<url><loc>/reference/compute_node_boxes.html</loc></url>
-<url><loc>/reference/index.html</loc></url>
-<url><loc>/reference/line_rect_intersection.html</loc></url>
-<url><loc>/reference/plot_dag.html</loc></url>
-<url><loc>/reference/preprocess_edges_df.html</loc></url>
-<url><loc>/reference/save_dag.html</loc></url>
+<url><loc>https://labasim.github.io/lmisc/404.html</loc></url>
+<url><loc>https://labasim.github.io/lmisc/articles/Lmisc.html</loc></url>
+<url><loc>https://labasim.github.io/lmisc/articles/index.html</loc></url>
+<url><loc>https://labasim.github.io/lmisc/authors.html</loc></url>
+<url><loc>https://labasim.github.io/lmisc/index.html</loc></url>
+<url><loc>https://labasim.github.io/lmisc/reference/adjust_edges_by_box.html</loc></url>
+<url><loc>https://labasim.github.io/lmisc/reference/compute_node_boxes.html</loc></url>
+<url><loc>https://labasim.github.io/lmisc/reference/index.html</loc></url>
+<url><loc>https://labasim.github.io/lmisc/reference/line_rect_intersection.html</loc></url>
+<url><loc>https://labasim.github.io/lmisc/reference/plot_dag.html</loc></url>
+<url><loc>https://labasim.github.io/lmisc/reference/preprocess_edges_df.html</loc></url>
+<url><loc>https://labasim.github.io/lmisc/reference/save_dag.html</loc></url>
 </urlset>
 
