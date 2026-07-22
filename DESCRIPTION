@@ -10,6 +10,7 @@ Authors@R: c(
     )
   )
 Description: Functions that I regularly use
+URL: https://labasim.github.io/lmisc
 License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true

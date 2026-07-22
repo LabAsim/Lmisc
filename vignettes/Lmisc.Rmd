@@ -14,15 +14,20 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
+```{r setup, include = FALSE}
 library(Lmisc)
 library(dplyr)
 library(ggplot2)
 ```
 
 
-
 # Prerequisites
+
+```
+library(Lmisc)
+library(dplyr)
+library(ggplot2)
+```
 
 First we need to build two dataframes; one containing info for the nodes
 and one containing for the lines
@@ -90,6 +95,7 @@ edges <- data.frame(
 ```
 
 
+# Plot
 
 ```{r}
 #| label: plot1
@@ -102,7 +108,7 @@ print(p)
 ```
 
 
-## Explanation of `curvature_amount`
+# Explanation of `curvature_amount`
 
 Imagine you're walking along the path from start to end:
 
@@ -149,7 +155,7 @@ the curved path is left-handed.
 When we walk from `B` to `C` (or from `A` to `B`) with a positive value,
 the path is right-handed (`curvature_amount = 0.2`).
 
-### Control of gap
+# Control of gap
 
 We can control the length of the lines by using the `gap` argument.
 

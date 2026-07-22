@@ -11,7 +11,7 @@ adjust_edges_by_box(edges_df, nodes_df)
 \describe{
   \item{from}{Character or integer identifier of the source node}
   \item{to}{Character or integer identifier of the target node}
-  \item{curvature}{Numeric indicator; 1 for curved edges, ≠ 1 for straight}
+  \item{curvature}{Numeric indicator; 1 for curved edges, 0 for straight}
 }
 Additional columns are preserved in the output.}
 
@@ -65,7 +65,7 @@ intersection calculations.
 center to node center intersects the perimeter of each node's bounding box.
 
 **Horizontal Lines**: For efficiency and visual consistency, applies a simplified
-offset (0.5 × half-width) instead of full intersection calculation. This keeps
+offset (0.5 * half-width) instead of full intersection calculation. This keeps
 horizontal arrows visibly separated from both nodes.
 
 **Curved Lines**: Applies custom offsets (quarter width, full height) to ensure
