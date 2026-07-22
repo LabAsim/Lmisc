@@ -20,6 +20,7 @@ library(Lmisc)
 library(dplyr)
 library(ggplot2)
 library(lavaan)
+library(ggdag)
 ```
 
 
@@ -34,9 +35,10 @@ library(lavaan)
 # Specify the model
 
 ```{r}
-# Load the dataset from lavaan
-data(FacialBurns)
+# Load the dataset. This dataset was taken from lavaan 6.2.1. Versions >0.7 have removed it.
+data("FacialBurns", package = "Lmisc")
 ```
+
 
 We specify the model first. This is just a toy model for illustrative purposes.
 
