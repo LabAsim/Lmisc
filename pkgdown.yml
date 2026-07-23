@@ -4,7 +4,7 @@ pkgdown_sha: ~
 articles:
   How_to_use_it_with_Lavaan: How_to_use_it_with_Lavaan.html
   Lmisc: Lmisc.html
-last_built: 2026-07-22T19:38Z
+last_built: 2026-07-23T16:21Z
 urls:
   reference: https://labasim.github.io/lmisc/reference
   article: https://labasim.github.io/lmisc/articles
