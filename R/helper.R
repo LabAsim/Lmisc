@@ -26,7 +26,23 @@ modify_parameter_estimates <- function(
         x <- round(x, digits = round_digits)
         return(x)
       } else {
-        return(as.numeric(x))
+        # Try to convert it to numeric
+        # If x="asdsad" => x_num=NA
+        # if x="1" => x_num=1
+
+        x_num <- suppressWarnings(as.numeric(x))
+
+        return(
+          unlist(
+            lapply(
+              # Iterate over each value
+              seq_along(x),
+              function(i) {
+                if (is.na(x_num[i])) x[i] else x_num[i]
+              }
+            )
+          )
+        )
       }
     }
   )
