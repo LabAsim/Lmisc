@@ -15,9 +15,9 @@
 #' @importFrom glue glue
 #' @export
 modify_parameter_estimates <- function(
-    df,
-    round_digits = 3,
-    add_equal_sign = T
+  df,
+  round_digits = 3,
+  add_equal_sign = T
 ) {
   df[] <- lapply(
     X = df[],
@@ -26,7 +26,7 @@ modify_parameter_estimates <- function(
         x <- round(x, digits = round_digits)
         return(x)
       } else {
-        return(x)
+        return(as.numeric(x))
       }
     }
   )
@@ -49,4 +49,3 @@ modify_parameter_estimates <- function(
     )
   return(df)
 }
-
