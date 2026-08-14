@@ -1,17 +1,42 @@
 # Resolve R CMD check NOTE: no visible binding for global variable
 utils::globalVariables(
   c(
-    "x", "y", "label", "half_w", "half_h",
-    "x_from", "y_from", "x_to", "y_to",
-    "half_w_from", "half_h_from", "half_w_to", "half_h_to",
-    "is_vertical", "is_horizontal",
-    "goes_up", "goes_down", "goes_right", "goes_left",
-    "box_w_cm", "box_h_cm",
-    "curvature", "curvature_amount",
-    "pvalue", "est", "ci.lower", "ci.upper",
-    "hjust", "vjust", "label_position",
-    "xstart_adj", "ystart_adj", "xend_adj", "yend_adj",
-    "row_id", "gap"
+    "x",
+    "y",
+    "label",
+    "half_w",
+    "half_h",
+    "x_from",
+    "y_from",
+    "x_to",
+    "y_to",
+    "half_w_from",
+    "half_h_from",
+    "half_w_to",
+    "half_h_to",
+    "is_vertical",
+    "is_horizontal",
+    "goes_up",
+    "goes_down",
+    "goes_right",
+    "goes_left",
+    "box_w_cm",
+    "box_h_cm",
+    "curvature",
+    "curvature_amount",
+    "pvalue",
+    "est",
+    "ci.lower",
+    "ci.upper",
+    "hjust",
+    "vjust",
+    "label_position",
+    "xstart_adj",
+    "ystart_adj",
+    "xend_adj",
+    "yend_adj",
+    "row_id",
+    "gap"
   )
 )
 
@@ -199,8 +224,14 @@ compute_node_boxes <- function(
 #'   rectangle center (x1, y1).
 #'
 line_rect_intersection <- function(
-    x0, y0, x1, y1, half_w, half_h, gap = 0
-    ) {
+  x0,
+  y0,
+  x1,
+  y1,
+  half_w,
+  half_h,
+  gap = 0
+) {
   # Rectangle bounds
   xmin <- x1 - half_w
   xmax <- x1 + half_w
@@ -395,7 +426,7 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
           all_of(
             c("node_id", "x", "y", "half_w", "half_h")
           )
-        )|>
+        ) |>
         dplyr::rename(
           x_from = x,
           y_from = y,
@@ -410,7 +441,7 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
           all_of(
             c("node_id", "x", "y", "half_w", "half_h")
           )
-        )|>
+        ) |>
         dplyr::rename(
           x_to = x,
           y_to = y,
@@ -468,7 +499,7 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
             y1 = row$y_from,
             half_w = row$half_w_from,
             half_h = row$half_h_from,
-            gap = 0,  # No extra gap from border
+            gap = 0, # No extra gap from border
             SIMPLIFY = FALSE
           )
           start_pts <- do.call(rbind, start_list)
@@ -481,7 +512,7 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
             y1 = row$y_to,
             half_w = row$half_w_to,
             half_h = row$half_h_to,
-            gap = 0,  # No extra gap from border
+            gap = 0, # No extra gap from border
             SIMPLIFY = FALSE
           )
           end_pts <- do.call(rbind, end_list)
@@ -499,9 +530,11 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
           # Shrink from start by starting box's half_height
           # Shrink from end by ending box's half_height
           xstart_adj[idx] <- row$x_from
-          ystart_adj[idx] <- row$y_from + sign(row$y_to - row$y_from) * row$half_h_from * abs(row$gap)
+          ystart_adj[idx] <- row$y_from +
+            sign(row$y_to - row$y_from) * row$half_h_from * abs(row$gap)
           xend_adj[idx] <- row$x_to
-          yend_adj[idx] <- row$y_to + sign(row$y_from - row$y_to) * row$half_h_to * abs(row$gap)
+          yend_adj[idx] <- row$y_to +
+            sign(row$y_from - row$y_to) * row$half_h_to * abs(row$gap)
         }
       }
     }
@@ -514,9 +547,11 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
       for (i in seq_len(nrow(horizontal_straight))) {
         row <- horizontal_straight[i, ]
         idx <- row$row_id
-        xstart_adj[idx] <- row$x_from + sign(row$x_to - row$x_from) * row$half_w_from * abs(row$gap)
+        xstart_adj[idx] <- row$x_from +
+          sign(row$x_to - row$x_from) * row$half_w_from * abs(row$gap)
         ystart_adj[idx] <- row$y_from
-        xend_adj[idx] <- row$x_to + sign(row$x_from - row$x_to) * row$half_w_to * abs(row$gap)
+        xend_adj[idx] <- row$x_to +
+          sign(row$x_from - row$x_to) * row$half_w_to * abs(row$gap)
         yend_adj[idx] <- row$y_to
         # if (row$goes_right) {
         #   xstart_adj[idx] <- row$x_from + sign(row$x_to - row$x_from) * row$half_w_from * abs(row$gap)
@@ -772,14 +807,13 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
 #' \itemize{
 #'   \item \code{label_position}: Default 0.5 centers text on the edge.
 #'   }
-preprocess_edges_df <- function(edges_df){
+preprocess_edges_df <- function(edges_df) {
   # Add this after loading edges_df
   if (!"label_position" %in% names(edges_df)) {
     # Default is 0.5 which centers the text on top of the line
     edges_df$label_position <- 0.5
   }
   if (!"gap" %in% names(edges_df)) {
-
     edges_df$gap <- 1
   }
   return(edges_df)
@@ -829,8 +863,8 @@ plot_dag <- function(
     plot_width_cm = plot_width_cm,
     plot_height_cm = plot_height_cm
   )
-  edges_adj <- preprocess_edges_df(edges)  |>
-    adjust_edges_by_box(nodes_df =  nodes_boxes)
+  edges_adj <- preprocess_edges_df(edges) |>
+    adjust_edges_by_box(nodes_df = nodes_boxes)
 
   to_return <- ggplot() +
     geom_label(
@@ -848,7 +882,9 @@ plot_dag <- function(
     geomtextpath::geom_textsegment(
       data = edges_adj |>
         dplyr::filter(
-          curvature == 0, pvalue <= 0.05),
+          curvature == 0,
+          pvalue <= 0.05
+        ),
       aes(
         x = xstart_adj,
         y = ystart_adj,
@@ -876,7 +912,10 @@ plot_dag <- function(
     geomtextpath::geom_textsegment(
       data = edges_adj |>
         dplyr::filter(
-          curvature == 0, pvalue > 0.05, !is_vertical, !is_horizontal
+          curvature == 0,
+          pvalue > 0.05,
+          !is_vertical,
+          !is_horizontal
         ),
       aes(
         x = xstart_adj,
@@ -903,7 +942,8 @@ plot_dag <- function(
     # Vertical non-sig lines are drawn separately #
     ###############################################
     geom_segment(
-      data = edges_adj |> dplyr::filter(curvature == 0, pvalue > 0.05, is_vertical),
+      data = edges_adj |>
+        dplyr::filter(curvature == 0, pvalue > 0.05, is_vertical),
       aes(
         x = xstart_adj,
         y = ystart_adj,
@@ -946,7 +986,8 @@ plot_dag <- function(
     # Horizontal non-sign paths #
     #############################
     geom_segment(
-      data = edges_adj |> dplyr::filter(curvature == 0, pvalue > 0.05, is_horizontal),
+      data = edges_adj |>
+        dplyr::filter(curvature == 0, pvalue > 0.05, is_horizontal),
       aes(
         x = xstart_adj,
         y = ystart_adj,
@@ -995,18 +1036,27 @@ plot_dag <- function(
     purrr::map(
       function(crv) {
         geomtextpath::geom_textcurve(
-          data = edges_adj  |>
+          data = edges_adj |>
             dplyr::filter(
-              curvature == 1, pvalue > 0.05, curvature_amount == crv
+              curvature == 1,
+              pvalue > 0.05,
+              curvature_amount == crv
             ),
           aes(
-            x = xstart_adj, y = ystart_adj, xend = xend_adj, yend = yend_adj,
+            x = xstart_adj,
+            y = ystart_adj,
+            xend = xend_adj,
+            yend = yend_adj,
             label = paste0(est, "\n(", ci.lower, " \u2014 ", ci.upper, ")"),
-            hjust = hjust, vjust = vjust
+            hjust = hjust,
+            vjust = vjust
           ),
           curvature = crv,
           arrow = arrow(length = unit(3, "mm"), type = "closed"),
-          linewidth = 1, linetype = 2, lineend = "butt", size = text_size
+          linewidth = 1,
+          linetype = 2,
+          lineend = "butt",
+          size = text_size
         )
       }
     )
@@ -1021,20 +1071,29 @@ plot_dag <- function(
         geomtextpath::geom_textcurve(
           data = edges_adj |>
             dplyr::filter(
-              curvature == 1, pvalue <= 0.05, curvature_amount == crv
+              curvature == 1,
+              pvalue <= 0.05,
+              curvature_amount == crv
             ),
           aes(
-            x = xstart_adj, y = ystart_adj, xend = xend_adj, yend = yend_adj,
+            x = xstart_adj,
+            y = ystart_adj,
+            xend = xend_adj,
+            yend = yend_adj,
             label = paste0(est, "\n(", ci.lower, " \u2014 ", ci.upper, ")"),
-            hjust = hjust, vjust = vjust
+            hjust = hjust,
+            vjust = vjust
           ),
           curvature = crv,
           arrow = arrow(length = unit(3, "mm"), type = "closed"),
-          linewidth = 1, linetype = 1, size = text_size
+          linewidth = 1,
+          linetype = 1,
+          size = text_size
         )
       }
     )
-  to_return <- to_return + geom_layers +
+  to_return <- to_return +
+    geom_layers +
     geom_layers_curved_sign_paths +
     coord_cartesian(xlim = xlim, ylim = ylim) +
     theme_void()
