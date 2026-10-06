@@ -225,9 +225,6 @@ plot_dag(
   xlim = c(-0.5, 4.4),
   ylim = c(-1.5, 1.5)
 )
-#> Warning: The text offset exceeds the curvature in one or more paths. This will result in
-#> displaced letters. Consider reducing the vjust or text size, or use the hjust
-#> parameter to move the string to a different point on the path.
 ```
 
 ![](How_to_use_it_with_Lavaan_files/figure-html/unnamed-chunk-8-1.png)

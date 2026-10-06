@@ -47,11 +47,11 @@ library(ggplot2)
 p <- ggplot(mtcars, aes(x = wt, y = mpg)) +
   geom_point()
 save_dag("my_plot.tiff", p, width = 20, height = 15)
-#> agg_record_1bf8790361a8 
+#> agg_record_1a8811b48519 
 #>                       2 
 
 # Save as PNG automatically from extension
 save_dag("my_plot.png", p, width = 20, height = 15)
-#> agg_record_1bf8790361a8 
+#> agg_record_1a8811b48519 
 #>                       2 
 ```
