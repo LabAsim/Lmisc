@@ -649,120 +649,320 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
     for (i in seq_len(nrow(curved))) {
       row <- curved[i, ]
 
+      # Determine gap value (default to 1 if NA)
+      gap_val <- ifelse(is.na(row$gap), 1, row$gap)
+
       # Positive curvature
       if (row$curvature_amount > 0) {
         # Vertical alignment (same X)
         if (row$is_vertical && row$goes_down) {
-          row$xstart_adj <- row$x_from - row$half_w_from # Left side
-          row$ystart_adj <- row$y_from
-          row$xend_adj <- row$x_to - row$half_w_to # Left side
-          row$yend_adj <- row$y_to
-        }
-        if (row$is_vertical && row$goes_up) {
-          # Vertical  + up
-          row$xstart_adj <- row$x_from + row$half_w_from # right side
-          row$ystart_adj <- row$y_from
-          row$xend_adj <- row$x_to + row$half_w_to # right side
-          row$yend_adj <- row$y_to
+          # Going down: start from left side of source, end at left side of target
+          if (gap_val == 1) {
+            # Border-to-border (original behavior)
+            row$xstart_adj <- row$x_from - row$half_w_from
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to - row$half_w_to
+            row$yend_adj <- row$y_to
+          } else if (gap_val == 0) {
+            # Center-to-center
+            row$xstart_adj <- row$x_from
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to
+          } else if (gap_val < 0) {
+            # Shrink inward by gap factor
+            row$xstart_adj <- row$x_from - row$half_w_from * abs(gap_val)
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to - row$half_w_to * abs(gap_val)
+            row$yend_adj <- row$y_to
+          }
+        } else if (row$is_vertical && row$goes_up) {
+          # Vertical + up: use right side for both
+          if (gap_val == 1) {
+            row$xstart_adj <- row$x_from + row$half_w_from
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to + row$half_w_to
+            row$yend_adj <- row$y_to
+          } else if (gap_val == 0) {
+            row$xstart_adj <- row$x_from
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to
+          } else if (gap_val < 0) {
+            row$xstart_adj <- row$x_from + row$half_w_from * abs(gap_val)
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to + row$half_w_to * abs(gap_val)
+            row$yend_adj <- row$y_to
+          }
+
           # Horizontal alignment (same Y)
         } else if (row$is_horizontal && row$goes_right) {
-          row$xstart_adj <- row$x_from
-          row$ystart_adj <- row$y_from - row$half_h_from # Top of source
-          row$xend_adj <- row$x_to
-          row$yend_adj <- row$y_to - row$half_h_to # Top of target
+          # Going right: use top of source and target
+          if (gap_val == 1) {
+            row$xstart_adj <- row$x_from
+            row$ystart_adj <- row$y_from - row$half_h_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to - row$half_h_to
+          } else if (gap_val == 0) {
+            row$xstart_adj <- row$x_from
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to
+          } else if (gap_val < 0) {
+            row$xstart_adj <- row$x_from
+            row$ystart_adj <- row$y_from - row$half_h_from * abs(gap_val)
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to - row$half_h_to * abs(gap_val)
+          }
         } else if (row$is_horizontal && row$goes_left) {
-          row$xstart_adj <- row$x_from
-          row$ystart_adj <- row$y_from + row$half_h_from # Top of source
-          row$xend_adj <- row$x_to
-          row$yend_adj <- row$y_to + row$half_h_to # Top of target
-
-          # Upwards + Right
-        } else if (row$goes_up && row$goes_right) {
-          row$xstart_adj <- row$x_from + row$half_w_from # Right of source
-          row$ystart_adj <- row$y_from
-          row$xend_adj <- row$x_to
-          row$yend_adj <- row$y_to - row$half_h_to # Bottom of target
-
-          # Upwards + Left
-        } else if (row$goes_up && row$goes_left) {
-          row$xstart_adj <- row$x_from - row$half_w_from # Left of source
-          row$ystart_adj <- row$y_from
-          row$xend_adj <- row$x_to
-          row$yend_adj <- row$y_to - row$half_h_to # Bottom of target
-
-          # Downwards + Right
-        } else if (row$goes_down && row$goes_right) {
-          row$xstart_adj <- row$x_from
-          row$ystart_adj <- row$y_from - row$half_h_from # Bottom of source
-          row$xend_adj <- row$x_to - row$half_w_to # left of source
-          row$yend_adj <- row$y_to
-          # Downwards + Left
-        } else if (row$goes_down && row$goes_left) {
-          row$xstart_adj <- row$x_from - row$half_w_from # left of source
-          row$ystart_adj <- row$y_from
-          row$xend_adj <- row$x_to
-          row$yend_adj <- row$y_to + row$half_h_to # Top of target
-        }
-      } else {
-        ######################
-        # Negative curvature #
-        ######################
-
-        # Vertical alignment (same X)
-        if (row$is_vertical && row$goes_down) {
-          row$xstart_adj <- row$x_from + row$half_w_from # Right side
-          row$ystart_adj <- row$y_from
-          row$xend_adj <- row$x_to + row$half_w_to # Right side
-          row$yend_adj <- row$y_to
-        } else if (row$is_vertical && row$goes_up) {
-          row$xstart_adj <- row$x_from - row$half_w_from # left side
-          row$ystart_adj <- row$y_from
-          row$xend_adj <- row$x_to - row$half_w_to # left side
-          row$yend_adj <- row$y_to
-        } else if (row$is_horizontal && row$goes_left) {
-          # Horizontal alignment (same Y) + left
-          row$xstart_adj <- row$x_from
-          row$ystart_adj <- row$y_from - row$half_h_from # Bottom of source
-          row$xend_adj <- row$x_to
-          row$yend_adj <- row$y_to - row$half_h_to # bottom of target
-        } else if (row$is_horizontal && row$goes_right) {
-          # Horizontal and right
-          row$xstart_adj <- row$x_from
-          row$ystart_adj <- row$y_from + row$half_h_from # Top of source
-          row$xend_adj <- row$x_to
-          row$yend_adj <- row$y_to + row$half_h_to # top of target
+          # Going left: use bottom of source and target
+          if (gap_val == 1) {
+            row$xstart_adj <- row$x_from
+            row$ystart_adj <- row$y_from + row$half_h_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to + row$half_h_to
+          } else if (gap_val == 0) {
+            row$xstart_adj <- row$x_from
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to
+          } else if (gap_val < 0) {
+            row$xstart_adj <- row$x_from
+            row$ystart_adj <- row$y_from + row$half_h_from * abs(gap_val)
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to + row$half_h_to * abs(gap_val)
+          }
 
           # Upwards + Right (↗️)
         } else if (row$goes_up && row$goes_right) {
-          row$xstart_adj <- row$x_from + row$half_w_from # Right of source
-          row$ystart_adj <- row$y_from
-          row$xend_adj <- row$x_to
-          row$yend_adj <- row$y_to - row$half_h_to # Bottom of target
+          if (gap_val == 1) {
+            row$xstart_adj <- row$x_from + row$half_w_from
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to - row$half_h_to
+          } else if (gap_val == 0) {
+            row$xstart_adj <- row$x_from
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to
+          } else if (gap_val < 0) {
+            row$xstart_adj <- row$x_from + row$half_w_from * abs(gap_val)
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to - row$half_h_to * abs(gap_val)
+          }
 
           # Upwards + Left (↖️)
         } else if (row$goes_up && row$goes_left) {
-          row$xstart_adj <- row$x_from - row$half_w_from # Left of source
-          row$ystart_adj <- row$y_from
-          row$xend_adj <- row$x_to
-          row$yend_adj <- row$y_to - row$half_h_to # Bottom of target
+          if (gap_val == 1) {
+            row$xstart_adj <- row$x_from - row$half_w_from
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to - row$half_h_to
+          } else if (gap_val == 0) {
+            row$xstart_adj <- row$x_from
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to
+          } else if (gap_val < 0) {
+            row$xstart_adj <- row$x_from - row$half_w_from * abs(gap_val)
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to - row$half_h_to * abs(gap_val)
+          }
 
           # Downwards + Right (↘️)
         } else if (row$goes_down && row$goes_right) {
-          row$xstart_adj <- row$x_from + row$half_w_from # Right of source
-          row$ystart_adj <- row$y_from
-          row$xend_adj <- row$x_to
-          row$yend_adj <- row$y_to + row$half_h_to # Top of target
+          if (gap_val == 1) {
+            row$xstart_adj <- row$x_from
+            row$ystart_adj <- row$y_from - row$half_h_from
+            row$xend_adj <- row$x_to - row$half_w_to
+            row$yend_adj <- row$y_to
+          } else if (gap_val == 0) {
+            row$xstart_adj <- row$x_from
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to
+          } else if (gap_val < 0) {
+            row$xstart_adj <- row$x_from
+            row$ystart_adj <- row$y_from - row$half_h_from * abs(gap_val)
+            row$xend_adj <- row$x_to - row$half_w_to * abs(gap_val)
+            row$yend_adj <- row$y_to
+          }
 
           # Downwards + Left (↙️)
         } else if (row$goes_down && row$goes_left) {
-          row$xstart_adj <- row$x_from
-          row$ystart_adj <- row$y_from - row$half_h_from # Bottom of source
-          row$xend_adj <- row$x_to + row$half_w_to # Right of target
-          row$yend_adj <- row$y_to
+          if (gap_val == 1) {
+            row$xstart_adj <- row$x_from - row$half_w_from
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to + row$half_h_to
+          } else if (gap_val == 0) {
+            row$xstart_adj <- row$x_from
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to
+          } else if (gap_val < 0) {
+            row$xstart_adj <- row$x_from - row$half_w_from * abs(gap_val)
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to + row$half_h_to * abs(gap_val)
+          }
+        }
+
+        ######################
+        # Negative curvature #
+        ######################
+      } else {
+        # Vertical alignment (same X)
+        if (row$is_vertical && row$goes_down) {
+          if (gap_val == 1) {
+            row$xstart_adj <- row$x_from + row$half_w_from
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to + row$half_w_to
+            row$yend_adj <- row$y_to
+          } else if (gap_val == 0) {
+            row$xstart_adj <- row$x_from
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to
+          } else if (gap_val < 0) {
+            row$xstart_adj <- row$x_from + row$half_w_from * abs(gap_val)
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to + row$half_w_to * abs(gap_val)
+            row$yend_adj <- row$y_to
+          }
+        } else if (row$is_vertical && row$goes_up) {
+          if (gap_val == 1) {
+            row$xstart_adj <- row$x_from - row$half_w_from
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to - row$half_w_to
+            row$yend_adj <- row$y_to
+          } else if (gap_val == 0) {
+            row$xstart_adj <- row$x_from
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to
+          } else if (gap_val < 0) {
+            row$xstart_adj <- row$x_from - row$half_w_from * abs(gap_val)
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to - row$half_w_to * abs(gap_val)
+            row$yend_adj <- row$y_to
+          }
+        } else if (row$is_horizontal && row$goes_left) {
+          if (gap_val == 1) {
+            row$xstart_adj <- row$x_from
+            row$ystart_adj <- row$y_from - row$half_h_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to - row$half_h_to
+          } else if (gap_val == 0) {
+            row$xstart_adj <- row$x_from
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to
+          } else if (gap_val < 0) {
+            row$xstart_adj <- row$x_from
+            row$ystart_adj <- row$y_from - row$half_h_from * abs(gap_val)
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to - row$half_h_to * abs(gap_val)
+          }
+        } else if (row$is_horizontal && row$goes_right) {
+          if (gap_val == 1) {
+            row$xstart_adj <- row$x_from
+            row$ystart_adj <- row$y_from + row$half_h_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to + row$half_h_to
+          } else if (gap_val == 0) {
+            row$xstart_adj <- row$x_from
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to
+          } else if (gap_val < 0) {
+            row$xstart_adj <- row$x_from
+            row$ystart_adj <- row$y_from + row$half_h_from * abs(gap_val)
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to + row$half_h_to * abs(gap_val)
+          }
+
+          # Upwards + Right (↗️)
+        } else if (row$goes_up && row$goes_right) {
+          if (gap_val == 1) {
+            row$xstart_adj <- row$x_from + row$half_w_from
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to - row$half_h_to
+          } else if (gap_val == 0) {
+            row$xstart_adj <- row$x_from
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to
+          } else if (gap_val < 0) {
+            row$xstart_adj <- row$x_from + row$half_w_from * abs(gap_val)
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to - row$half_h_to * abs(gap_val)
+          }
+
+          # Upwards + Left (↖️)
+        } else if (row$goes_up && row$goes_left) {
+          if (gap_val == 1) {
+            row$xstart_adj <- row$x_from - row$half_w_from
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to - row$half_h_to
+          } else if (gap_val == 0) {
+            row$xstart_adj <- row$x_from
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to
+          } else if (gap_val < 0) {
+            row$xstart_adj <- row$x_from - row$half_w_from * abs(gap_val)
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to - row$half_h_to * abs(gap_val)
+          }
+
+          # Downwards + Right (↘️)
+        } else if (row$goes_down && row$goes_right) {
+          if (gap_val == 1) {
+            row$xstart_adj <- row$x_from + row$half_w_from
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to + row$half_h_to
+          } else if (gap_val == 0) {
+            row$xstart_adj <- row$x_from
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to
+          } else if (gap_val < 0) {
+            row$xstart_adj <- row$x_from + row$half_w_from * abs(gap_val)
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to + row$half_h_to * abs(gap_val)
+          }
+
+          # Downwards + Left (↙️)
+        } else if (row$goes_down && row$goes_left) {
+          if (gap_val == 1) {
+            row$xstart_adj <- row$x_from
+            row$ystart_adj <- row$y_from - row$half_h_from
+            row$xend_adj <- row$x_to + row$half_w_to
+            row$yend_adj <- row$y_to
+          } else if (gap_val == 0) {
+            row$xstart_adj <- row$x_from
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to
+          } else if (gap_val < 0) {
+            row$xstart_adj <- row$x_from
+            row$ystart_adj <- row$y_from - row$half_h_from * abs(gap_val)
+            row$xend_adj <- row$x_to + row$half_w_to * abs(gap_val)
+            row$yend_adj <- row$y_to
+          }
         }
       }
 
-      # Store results back
+      # Store results back into the main arrays
       curved_idx_i <- curved_idx[i]
       xstart_adj[curved_idx_i] <- row$xstart_adj
       ystart_adj[curved_idx_i] <- row$ystart_adj
