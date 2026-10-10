@@ -36,7 +36,8 @@ utils::globalVariables(
     "xend_adj",
     "yend_adj",
     "row_id",
-    "gap"
+    "gap",
+    "scale_factor"
   )
 )
 
@@ -302,25 +303,8 @@ line_rect_intersection <- function(
   # Apply gap offset alg the line direction
   # Positive gap: moves FORWARD along line to source and target boxes)
   # Negative gap: moves away from source and target boxes
-  pt["x"] <- pt["x"] + ux #* gap
-  pt["y"] <- pt["y"] + uy #* gap
-
-  # Vertical lines
-  # if (dy != 0 && dx==0){
-  #   if (dy > 0){
-  #     print(paste(dx, ux, dy, uy))
-  #     pt["x"] <- pt["x"] - dx * gap
-  #     pt["y"] <- pt["y"] - uy * gap
-  #   } else {
-  #     print(paste(dx, ux, dy, uy))
-  #     pt["x"] <- pt["x"] + dx * gap
-  #     pt["y"] <- pt["y"] + uy * gap
-  #   }
-  # }
-  # attr(pt, "dx") <- dx
-  # attr(pt, "dy") <- dx
-  # attr(pt, "ux") <- ux
-  # attr(pt, "uy") <- uy
+  pt["x"] <- pt["x"] + ux * gap
+  pt["y"] <- pt["y"] + uy * gap
   return(pt)
 }
 
@@ -399,8 +383,6 @@ line_rect_intersection <- function(
 #' }
 #'
 #' @importFrom dplyr left_join
-#'
-
 adjust_edges_by_box <- function(edges_df, nodes_df) {
   # Check required columns exist
   required_nodes_cols <- c("node_id", "x", "y", "half_w", "half_h")
@@ -489,7 +471,7 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
         idx <- row$row_id
         # gap_val <- ifelse(is.na(row$gap), 1, row$gap)  # Default to 1 if NA
 
-        if (row$gap == 1) {
+        if (row$scale_factor == 1) {
           # Do nothing - use border-to-border (current behavior)
           start_list <- mapply(
             FUN = line_rect_intersection,
@@ -520,21 +502,26 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
           ystart_adj[idx] <- start_pts[, "y"]
           xend_adj[idx] <- end_pts[, "x"]
           yend_adj[idx] <- end_pts[, "y"]
-        } else if (row$gap == 0) {
+        } else if (row$scale_factor == 0) {
           # Start and end from boxes' centers
           xstart_adj[idx] <- row$x_from
           ystart_adj[idx] <- row$y_from
           xend_adj[idx] <- row$x_to
           yend_adj[idx] <- row$y_to
-        } else if (row$gap < 0) {
+        } else if (row$scale_factor > 0 && row$scale_factor < 1) {
           # Shrink from start by starting box's half_height
           # Shrink from end by ending box's half_height
-          xstart_adj[idx] <- row$x_from
-          ystart_adj[idx] <- row$y_from +
-            sign(row$y_to - row$y_from) * row$half_h_from * abs(row$gap)
-          xend_adj[idx] <- row$x_to
-          yend_adj[idx] <- row$y_to +
-            sign(row$y_from - row$y_to) * row$half_h_to * abs(row$gap)
+          adj_coords <- shrink_endpoints(
+            x1 = row$x_from,
+            y1 = row$y_from, # + sign(row$y_to - row$y_from) * row$half_h_from,
+            x2 = row$x_to,
+            y2 = row$y_to, # + sign(row$y_from - row$y_to) * row$half_h_to,
+            factor = row$scale_factor
+          )
+          xstart_adj[idx] <- adj_coords$x1
+          ystart_adj[idx] <- adj_coords$y1
+          xend_adj[idx] <- adj_coords$x2
+          yend_adj[idx] <- adj_coords$y2 # Top of target
         }
       }
     }
@@ -547,23 +534,58 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
       for (i in seq_len(nrow(horizontal_straight))) {
         row <- horizontal_straight[i, ]
         idx <- row$row_id
-        xstart_adj[idx] <- row$x_from +
-          sign(row$x_to - row$x_from) * row$half_w_from * abs(row$gap)
-        ystart_adj[idx] <- row$y_from
-        xend_adj[idx] <- row$x_to +
-          sign(row$x_from - row$x_to) * row$half_w_to * abs(row$gap)
-        yend_adj[idx] <- row$y_to
-        # if (row$goes_right) {
-        #   xstart_adj[idx] <- row$x_from + sign(row$x_to - row$x_from) * row$half_w_from * abs(row$gap)
-        #   ystart_adj[idx] <- row$y_from
-        #   xend_adj[idx] <- row$x_to + sign(row$x_from - row$x_to) * row$half_w_to * abs(row$gap)
-        #   yend_adj[idx] <- row$y_to
-        # } else if (row$goes_left) {
-        #   xstart_adj[idx] <- row$x_from + sign(row$x_to - row$x_from) * row$half_w_from * abs(row$gap)
-        #   ystart_adj[idx] <- row$y_from
-        #   xend_adj[idx] <- row$x_to + sign(row$x_from - row$x_to) * row$half_w_to * abs(row$gap)
-        #   yend_adj[idx] <- row$y_to
-        # }
+        if (row$scale_factor == 1) {
+          # Do nothing - use border-to-border (current behavior)
+          start_list <- mapply(
+            FUN = line_rect_intersection,
+            x0 = row$x_to,
+            y0 = row$y_to,
+            x1 = row$x_from,
+            y1 = row$y_from,
+            half_w = row$half_w_from,
+            half_h = row$half_h_from,
+            gap = 0, # No extra gap from border
+            SIMPLIFY = FALSE
+          )
+          start_pts <- do.call(rbind, start_list)
+
+          end_list <- mapply(
+            FUN = line_rect_intersection,
+            x0 = row$x_from,
+            y0 = row$y_from,
+            x1 = row$x_to,
+            y1 = row$y_to,
+            half_w = row$half_w_to,
+            half_h = row$half_h_to,
+            gap = 0, # No extra gap from border
+            SIMPLIFY = FALSE
+          )
+          end_pts <- do.call(rbind, end_list)
+          xstart_adj[idx] <- start_pts[, "x"]
+          ystart_adj[idx] <- start_pts[, "y"]
+          xend_adj[idx] <- end_pts[, "x"]
+          yend_adj[idx] <- end_pts[, "y"]
+        } else if (row$scale_factor == 0) {
+          # Start and end from boxes' centers
+          xstart_adj[idx] <- row$x_from
+          ystart_adj[idx] <- row$y_from
+          xend_adj[idx] <- row$x_to
+          yend_adj[idx] <- row$y_to
+        } else if (row$scale_factor > 0 && row$scale_factor < 1) {
+          # Shrink from start by starting box's half_height
+          # Shrink from end by ending box's half_height
+          adj_coords <- shrink_endpoints(
+            x1 = row$x_from,
+            y1 = row$y_from,
+            x2 = row$x_to,
+            y2 = row$y_to,
+            factor = row$scale_factor
+          )
+          xstart_adj[idx] <- adj_coords$x1
+          ystart_adj[idx] <- adj_coords$y1
+          xend_adj[idx] <- adj_coords$x2
+          yend_adj[idx] <- adj_coords$y2 # Top of target
+        }
       }
     }
 
@@ -591,7 +613,7 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
           ux <- 0
           uy <- 0
         }
-        if (row$gap == 1) {
+        if (row$scale_factor == 1) {
           # Do nothing - use border-to-border (current behavior)
           start_list <- mapply(
             FUN = line_rect_intersection,
@@ -622,19 +644,26 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
           ystart_adj[idx] <- start_pts[, "y"]
           xend_adj[idx] <- end_pts[, "x"]
           yend_adj[idx] <- end_pts[, "y"]
-        } else if (row$gap == 0) {
+        } else if (row$scale_factor == 0) {
           # Start and end from boxes' centers
           xstart_adj[idx] <- row$x_from
           ystart_adj[idx] <- row$y_from
           xend_adj[idx] <- row$x_to
           yend_adj[idx] <- row$y_to
-        } else if (row$gap < 0) {
+        } else if (row$scale_factor > 0 && row$scale_factor < 1) {
           # Shrink from start by starting box's half_diagonal
           # Shrink from end by ending box's half_diagonal
-          xstart_adj[idx] <- row$x_from + ux * diag_half_from * abs(row$gap)
-          ystart_adj[idx] <- row$y_from + uy * diag_half_from * abs(row$gap)
-          xend_adj[idx] <- row$x_to - ux * diag_half_to * abs(row$gap)
-          yend_adj[idx] <- row$y_to - uy * diag_half_to * abs(row$gap)
+          adj_coords <- shrink_endpoints(
+            x1 = row$x_from,
+            y1 = row$y_from,
+            x2 = row$x_to,
+            y2 = row$y_to,
+            factor = row$scale_factor
+          )
+          xstart_adj[idx] <- adj_coords$x1
+          ystart_adj[idx] <- adj_coords$y1
+          xend_adj[idx] <- adj_coords$x2
+          yend_adj[idx] <- adj_coords$y2 # Top of target
         }
       }
     }
@@ -649,320 +678,343 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
     for (i in seq_len(nrow(curved))) {
       row <- curved[i, ]
 
-      # Determine gap value (default to 1 if NA)
-      gap_val <- ifelse(is.na(row$gap), 1, row$gap)
-
       # Positive curvature
       if (row$curvature_amount > 0) {
         # Vertical alignment (same X)
         if (row$is_vertical && row$goes_down) {
-          # Going down: start from left side of source, end at left side of target
-          if (gap_val == 1) {
-            # Border-to-border (original behavior)
-            row$xstart_adj <- row$x_from - row$half_w_from
+          if (row$scale_factor >= 0 && row$scale_factor <= 1) {
+            adj_coords <- shrink_endpoints(
+              x1 = row$x_from - row$half_w_from,
+              y1 = row$y_from,
+              x2 = row$x_to - row$half_w_to,
+              y2 = row$y_to,
+              factor = row$scale_factor
+            )
+            row$xstart_adj <- adj_coords$x1
+            row$ystart_adj <- adj_coords$y1
+            row$xend_adj <- adj_coords$x2
+            row$yend_adj <- adj_coords$y2 # Top of target
+          } else {
+            row$xstart_adj <- row$x_from - row$half_w_from # Left side
             row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to - row$half_w_to
+            row$xend_adj <- row$x_to - row$half_w_to # Left side
             row$yend_adj <- row$y_to
-          } else if (gap_val == 0) {
-            # Center-to-center
-            row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to
-          } else if (gap_val < 0) {
-            # Shrink inward by gap factor
-            row$xstart_adj <- row$x_from - row$half_w_from * abs(gap_val)
-            row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to - row$half_w_to * abs(gap_val)
-            row$yend_adj <- row$y_to
-          }
-        } else if (row$is_vertical && row$goes_up) {
-          # Vertical + up: use right side for both
-          if (gap_val == 1) {
-            row$xstart_adj <- row$x_from + row$half_w_from
-            row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to + row$half_w_to
-            row$yend_adj <- row$y_to
-          } else if (gap_val == 0) {
-            row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to
-          } else if (gap_val < 0) {
-            row$xstart_adj <- row$x_from + row$half_w_from * abs(gap_val)
-            row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to + row$half_w_to * abs(gap_val)
-            row$yend_adj <- row$y_to
-          }
-
-          # Horizontal alignment (same Y)
-        } else if (row$is_horizontal && row$goes_right) {
-          # Going right: use top of source and target
-          if (gap_val == 1) {
-            row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from - row$half_h_from
-            row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to - row$half_h_to
-          } else if (gap_val == 0) {
-            row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to
-          } else if (gap_val < 0) {
-            row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from - row$half_h_from * abs(gap_val)
-            row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to - row$half_h_to * abs(gap_val)
-          }
-        } else if (row$is_horizontal && row$goes_left) {
-          # Going left: use bottom of source and target
-          if (gap_val == 1) {
-            row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from + row$half_h_from
-            row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to + row$half_h_to
-          } else if (gap_val == 0) {
-            row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to
-          } else if (gap_val < 0) {
-            row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from + row$half_h_from * abs(gap_val)
-            row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to + row$half_h_to * abs(gap_val)
-          }
-
-          # Upwards + Right (↗️)
-        } else if (row$goes_up && row$goes_right) {
-          if (gap_val == 1) {
-            row$xstart_adj <- row$x_from + row$half_w_from
-            row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to - row$half_h_to
-          } else if (gap_val == 0) {
-            row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to
-          } else if (gap_val < 0) {
-            row$xstart_adj <- row$x_from + row$half_w_from * abs(gap_val)
-            row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to - row$half_h_to * abs(gap_val)
-          }
-
-          # Upwards + Left (↖️)
-        } else if (row$goes_up && row$goes_left) {
-          if (gap_val == 1) {
-            row$xstart_adj <- row$x_from - row$half_w_from
-            row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to - row$half_h_to
-          } else if (gap_val == 0) {
-            row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to
-          } else if (gap_val < 0) {
-            row$xstart_adj <- row$x_from - row$half_w_from * abs(gap_val)
-            row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to - row$half_h_to * abs(gap_val)
-          }
-
-          # Downwards + Right (↘️)
-        } else if (row$goes_down && row$goes_right) {
-          if (gap_val == 1) {
-            row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from - row$half_h_from
-            row$xend_adj <- row$x_to - row$half_w_to
-            row$yend_adj <- row$y_to
-          } else if (gap_val == 0) {
-            row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to
-          } else if (gap_val < 0) {
-            row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from - row$half_h_from * abs(gap_val)
-            row$xend_adj <- row$x_to - row$half_w_to * abs(gap_val)
-            row$yend_adj <- row$y_to
-          }
-
-          # Downwards + Left (↙️)
-        } else if (row$goes_down && row$goes_left) {
-          if (gap_val == 1) {
-            row$xstart_adj <- row$x_from - row$half_w_from
-            row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to + row$half_h_to
-          } else if (gap_val == 0) {
-            row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to
-          } else if (gap_val < 0) {
-            row$xstart_adj <- row$x_from - row$half_w_from * abs(gap_val)
-            row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to + row$half_h_to * abs(gap_val)
           }
         }
+        if (row$is_vertical && row$goes_up) {
+          # Vertical  + up
+          if (row$scale_factor >= 0 && row$scale_factor <= 1) {
+            adj_coords <- shrink_endpoints(
+              x1 = row$x_from + row$half_w_from,
+              y1 = row$y_from,
+              x2 = row$x_to + row$half_w_to,
+              y2 = row$y_to,
+              factor = row$scale_factor
+            )
+            row$xstart_adj <- adj_coords$x1
+            row$ystart_adj <- adj_coords$y1
+            row$xend_adj <- adj_coords$x2
+            row$yend_adj <- adj_coords$y2 # Top of target
+          } else {
+            row$xstart_adj <- row$x_from + row$half_w_from # right side
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to + row$half_w_to # right side
+            row$yend_adj <- row$y_to
+          }
+          # Horizontal alignment (same Y)
+        } else if (row$is_horizontal && row$goes_right) {
+          if (row$scale_factor >= 0 && row$scale_factor <= 1) {
+            adj_coords <- shrink_endpoints(
+              x1 = row$x_from,
+              y1 = row$y_from - row$half_h_from,
+              x2 = row$x_to,
+              y2 = row$y_to - row$half_h_to,
+              factor = row$scale_factor
+            )
+            row$xstart_adj <- adj_coords$x1
+            row$ystart_adj <- adj_coords$y1
+            row$xend_adj <- adj_coords$x2
+            row$yend_adj <- adj_coords$y2 # Top of target
+          } else {
+            row$xstart_adj <- row$x_from
+            row$ystart_adj <- row$y_from - row$half_h_from # Top of source
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to - row$half_h_to # Top of target
+          }
+        } else if (row$is_horizontal && row$goes_left) {
+          if (row$scale_factor >= 0 && row$scale_factor <= 1) {
+            adj_coords <- shrink_endpoints(
+              x1 = row$x_from,
+              y1 = row$y_from + row$half_h_from,
+              x2 = row$x_to,
+              y2 = row$y_to + row$half_h_to,
+              factor = row$scale_factor
+            )
+            row$xstart_adj <- adj_coords$x1
+            row$ystart_adj <- adj_coords$y1
+            row$xend_adj <- adj_coords$x2
+            row$yend_adj <- adj_coords$y2 # Top of target
+          } else {
+            row$xstart_adj <- row$x_from
+            row$ystart_adj <- row$y_from + row$half_h_from # Top of source
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to + row$half_h_to # Top of target
+          }
 
+          # Upwards + Right
+        } else if (row$goes_up && row$goes_right) {
+          if (row$scale_factor >= 0 && row$scale_factor <= 1) {
+            adj_coords <- shrink_endpoints(
+              x1 = row$x_from + row$half_w_from,
+              y1 = row$y_from,
+              x2 = row$x_to,
+              y2 = row$y_to - row$half_h_to,
+              factor = row$scale_factor
+            )
+            row$xstart_adj <- adj_coords$x1
+            row$ystart_adj <- adj_coords$y1
+            row$xend_adj <- adj_coords$x2
+            row$yend_adj <- adj_coords$y2 # Top of target
+          } else {
+            row$xstart_adj <- row$x_from + row$half_w_from # Right of source
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to - row$half_h_to # Bottom of target
+          }
+
+          # Upwards + Left
+        } else if (row$goes_up && row$goes_left) {
+          if (row$scale_factor >= 0 && row$scale_factor <= 1) {
+            adj_coords <- shrink_endpoints(
+              x1 = row$x_from,
+              y1 = row$y_from + row$half_h_from,
+              x2 = row$x_to + row$half_w_to,
+              y2 = row$y_to,
+              factor = row$scale_factor
+            )
+            row$xstart_adj <- adj_coords$x1
+            row$ystart_adj <- adj_coords$y1
+            row$xend_adj <- adj_coords$x2
+            row$yend_adj <- adj_coords$y2 # Top of target
+          } else {
+            row$xstart_adj <- row$x_from #- row$half_w_from # Left of source
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to - row$half_h_to # Bottom of target
+          }
+          # Downwards + Right
+        } else if (row$goes_down && row$goes_right) {
+          if (row$scale_factor >= 0 && row$scale_factor <= 1) {
+            adj_coords <- shrink_endpoints(
+              x1 = row$x_from,
+              y1 = row$y_from - row$half_h_from,
+              x2 = row$x_to - row$half_w_to,
+              y2 = row$y_to,
+              factor = row$scale_factor
+            )
+            row$xstart_adj <- adj_coords$x1
+            row$ystart_adj <- adj_coords$y1
+            row$xend_adj <- adj_coords$x2
+            row$yend_adj <- adj_coords$y2 # Top of target
+          } else {
+            row$xstart_adj <- row$x_from
+            row$ystart_adj <- row$y_from - row$half_h_from # Bottom of source
+            row$xend_adj <- row$x_to - row$half_w_to # left of source
+            row$yend_adj <- row$y_to
+          }
+          # Downwards + Left
+        } else if (row$goes_down && row$goes_left) {
+          if (row$scale_factor >= 0 && row$scale_factor <= 1) {
+            adj_coords <- shrink_endpoints(
+              x1 = row$x_from - row$half_w_from,
+              y1 = row$y_from,
+              x2 = row$x_to,
+              y2 = row$y_to + row$half_h_to,
+              factor = row$scale_factor
+            )
+            row$xstart_adj <- adj_coords$x1
+            row$ystart_adj <- adj_coords$y1
+            row$xend_adj <- adj_coords$x2
+            row$yend_adj <- adj_coords$y2 # Top of target
+          } else {
+            row$xstart_adj <- row$x_from - row$half_w_from # left of source
+            row$ystart_adj <- row$y_from
+            row$xend_adj <- row$x_to
+            row$yend_adj <- row$y_to + row$half_h_to # Top of target
+          }
+        }
+      } else {
         ######################
         # Negative curvature #
         ######################
-      } else {
+
         # Vertical alignment (same X)
         if (row$is_vertical && row$goes_down) {
-          if (gap_val == 1) {
-            row$xstart_adj <- row$x_from + row$half_w_from
+          if (row$scale_factor >= 0 && row$scale_factor <= 1) {
+            adj_coords <- shrink_endpoints(
+              x1 = row$x_from - row$half_w_from,
+              y1 = row$y_from,
+              x2 = row$x_to - row$half_w_to,
+              y2 = row$y_to,
+              factor = row$scale_factor
+            )
+            row$xstart_adj <- adj_coords$x1
+            row$ystart_adj <- adj_coords$y1
+            row$xend_adj <- adj_coords$x2
+            row$yend_adj <- adj_coords$y2 # Top of target
+          } else {
+            row$xstart_adj <- row$x_from + row$half_w_from # Right side
             row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to + row$half_w_to
-            row$yend_adj <- row$y_to
-          } else if (gap_val == 0) {
-            row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to
-          } else if (gap_val < 0) {
-            row$xstart_adj <- row$x_from + row$half_w_from * abs(gap_val)
-            row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to + row$half_w_to * abs(gap_val)
+            row$xend_adj <- row$x_to + row$half_w_to # Right side
             row$yend_adj <- row$y_to
           }
         } else if (row$is_vertical && row$goes_up) {
-          if (gap_val == 1) {
-            row$xstart_adj <- row$x_from - row$half_w_from
+          if (row$scale_factor >= 0 && row$scale_factor <= 1) {
+            adj_coords <- shrink_endpoints(
+              x1 = row$x_from - row$half_w_from,
+              y1 = row$y_from,
+              x2 = row$x_to - row$half_w_to,
+              y2 = row$y_to,
+              factor = row$scale_factor
+            )
+            row$xstart_adj <- adj_coords$x1
+            row$ystart_adj <- adj_coords$y1
+            row$xend_adj <- adj_coords$x2
+            row$yend_adj <- adj_coords$y2 # Top of target
+          } else {
+            row$xstart_adj <- row$x_from - row$half_w_from # left side
             row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to - row$half_w_to
-            row$yend_adj <- row$y_to
-          } else if (gap_val == 0) {
-            row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to
-          } else if (gap_val < 0) {
-            row$xstart_adj <- row$x_from - row$half_w_from * abs(gap_val)
-            row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to - row$half_w_to * abs(gap_val)
+            row$xend_adj <- row$x_to - row$half_w_to # left side
             row$yend_adj <- row$y_to
           }
         } else if (row$is_horizontal && row$goes_left) {
-          if (gap_val == 1) {
+          # Horizontal alignment (same Y) + left
+          if (row$scale_factor >= 0 && row$scale_factor <= 1) {
+            adj_coords <- shrink_endpoints(
+              x1 = row$x_from,
+              y1 = row$y_from - row$half_h_from,
+              x2 = row$x_to,
+              y2 = row$y_to - row$half_h_to,
+              factor = row$scale_factor
+            )
+            row$xstart_adj <- adj_coords$x1
+            row$ystart_adj <- adj_coords$y1
+            row$xend_adj <- adj_coords$x2
+            row$yend_adj <- adj_coords$y2 # Top of target
+          } else {
             row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from - row$half_h_from
+            row$ystart_adj <- row$y_from - row$half_h_from # Bottom of source
             row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to - row$half_h_to
-          } else if (gap_val == 0) {
-            row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to
-          } else if (gap_val < 0) {
-            row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from - row$half_h_from * abs(gap_val)
-            row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to - row$half_h_to * abs(gap_val)
+            row$yend_adj <- row$y_to - row$half_h_to # bottom of target
           }
         } else if (row$is_horizontal && row$goes_right) {
-          if (gap_val == 1) {
+          # Horizontal and right
+          if (row$scale_factor >= 0 && row$scale_factor <= 1) {
+            adj_coords <- shrink_endpoints(
+              x1 = row$x_from,
+              y1 = row$y_from + row$half_h_from,
+              x2 = row$x_to,
+              y2 = row$y_to + row$half_h_to,
+              factor = row$scale_factor
+            )
+            row$xstart_adj <- adj_coords$x1
+            row$ystart_adj <- adj_coords$y1
+            row$xend_adj <- adj_coords$x2
+            row$yend_adj <- adj_coords$y2 # Top of target
+          } else {
             row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from + row$half_h_from
+            row$ystart_adj <- row$y_from + row$half_h_from # Top of source
             row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to + row$half_h_to
-          } else if (gap_val == 0) {
-            row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to
-          } else if (gap_val < 0) {
-            row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from + row$half_h_from * abs(gap_val)
-            row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to + row$half_h_to * abs(gap_val)
+            row$yend_adj <- row$y_to + row$half_h_to # top of target
           }
 
           # Upwards + Right (↗️)
         } else if (row$goes_up && row$goes_right) {
-          if (gap_val == 1) {
-            row$xstart_adj <- row$x_from + row$half_w_from
+          if (row$scale_factor >= 0 && row$scale_factor <= 1) {
+            adj_coords <- shrink_endpoints(
+              x1 = row$x_from,
+              y1 = row$y_from + row$half_h_from,
+              x2 = row$x_to - row$half_w_to,
+              y2 = row$y_to,
+              factor = row$scale_factor
+            )
+            row$xstart_adj <- adj_coords$x1
+            row$ystart_adj <- adj_coords$y1
+            row$xend_adj <- adj_coords$x2
+            row$yend_adj <- adj_coords$y2 # Top of target
+          } else {
+            row$xstart_adj <- row$x_from + row$half_w_from # Right of source
             row$ystart_adj <- row$y_from
             row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to - row$half_h_to
-          } else if (gap_val == 0) {
-            row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to
-          } else if (gap_val < 0) {
-            row$xstart_adj <- row$x_from + row$half_w_from * abs(gap_val)
-            row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to - row$half_h_to * abs(gap_val)
+            row$yend_adj <- row$y_to - row$half_h_to # Bottom of target
           }
 
           # Upwards + Left (↖️)
         } else if (row$goes_up && row$goes_left) {
-          if (gap_val == 1) {
-            row$xstart_adj <- row$x_from - row$half_w_from
+          if (row$scale_factor >= 0 && row$scale_factor <= 1) {
+            adj_coords <- shrink_endpoints(
+              x1 = row$x_from - row$half_w_from,
+              y1 = row$y_from,
+              x2 = row$x_to,
+              y2 = row$y_to - row$half_h_to,
+              factor = row$scale_factor
+            )
+            row$xstart_adj <- adj_coords$x1
+            row$ystart_adj <- adj_coords$y1
+            row$xend_adj <- adj_coords$x2
+            row$yend_adj <- adj_coords$y2 # Top of target
+          } else {
+            row$xstart_adj <- row$x_from - row$half_w_from # Left of source
             row$ystart_adj <- row$y_from
             row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to - row$half_h_to
-          } else if (gap_val == 0) {
-            row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to
-          } else if (gap_val < 0) {
-            row$xstart_adj <- row$x_from - row$half_w_from * abs(gap_val)
-            row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to - row$half_h_to * abs(gap_val)
+            row$yend_adj <- row$y_to - row$half_h_to # Bottom of target
           }
 
           # Downwards + Right (↘️)
         } else if (row$goes_down && row$goes_right) {
-          if (gap_val == 1) {
-            row$xstart_adj <- row$x_from + row$half_w_from
+          if (row$scale_factor >= 0 && row$scale_factor <= 1) {
+            adj_coords <- shrink_endpoints(
+              x1 = row$x_from + row$half_w_from,
+              y1 = row$y_from,
+              x2 = row$x_to,
+              y2 = row$y_to + row$half_h_to,
+              factor = row$scale_factor
+            )
+            row$xstart_adj <- adj_coords$x1
+            row$ystart_adj <- adj_coords$y1
+            row$xend_adj <- adj_coords$x2
+            row$yend_adj <- adj_coords$y2 # Top of target
+          } else {
+            row$xstart_adj <- row$x_from + row$half_w_from # Right of source
             row$ystart_adj <- row$y_from
             row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to + row$half_h_to
-          } else if (gap_val == 0) {
-            row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to
-          } else if (gap_val < 0) {
-            row$xstart_adj <- row$x_from + row$half_w_from * abs(gap_val)
-            row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to + row$half_h_to * abs(gap_val)
+            row$yend_adj <- row$y_to + row$half_h_to # Top of target
           }
 
           # Downwards + Left (↙️)
         } else if (row$goes_down && row$goes_left) {
-          if (gap_val == 1) {
+          if (row$scale_factor >= 0 && row$scale_factor <= 1) {
+            adj_coords <- shrink_endpoints(
+              x1 = row$x_from,
+              y1 = row$y_from - row$half_h_from,
+              x2 = row$x_to + row$half_w_to,
+              y2 = row$y_to,
+              factor = row$scale_factor
+            )
+            row$xstart_adj <- adj_coords$x1
+            row$ystart_adj <- adj_coords$y1
+            row$xend_adj <- adj_coords$x2
+            row$yend_adj <- adj_coords$y2 # Top of target
+          } else {
             row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from - row$half_h_from
-            row$xend_adj <- row$x_to + row$half_w_to
-            row$yend_adj <- row$y_to
-          } else if (gap_val == 0) {
-            row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to
-          } else if (gap_val < 0) {
-            row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from - row$half_h_from * abs(gap_val)
-            row$xend_adj <- row$x_to + row$half_w_to * abs(gap_val)
+            row$ystart_adj <- row$y_from - row$half_h_from # Bottom of source
+            row$xend_adj <- row$x_to + row$half_w_to # Right of target
             row$yend_adj <- row$y_to
           }
         }
       }
 
-      # Store results back into the main arrays
+      # Store results back
       curved_idx_i <- curved_idx[i]
       xstart_adj[curved_idx_i] <- row$xstart_adj
       ystart_adj[curved_idx_i] <- row$ystart_adj
@@ -983,6 +1035,7 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
   return(out)
 }
 
+
 #' Preprocess Edges DataFrame
 #' Ensures required edge attributes have default values when not provided.
 #' @param edges_df A data frame containing edge information
@@ -991,7 +1044,7 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
 #'     \item{from}{Node ID of the source node}
 #'     \item{to}{Node ID of the target node}
 #'     \item{curvature}{Curvature flag (0 for straight lines, 1 for curved)}
-#'     \item{gap}{Optional gap offset from node borders (default: 0)}
+#'     \item{scale_factor}{Optional scale factor to shrink the lines (default: 1)}
 #'     \item{pvalue}{Statistical significance value for styling}
 #'     \item{est}{Effect estimate displayed on edge labels}
 #'     \item{ci.lower}{Lower bound of confidence interval}
@@ -1013,8 +1066,8 @@ preprocess_edges_df <- function(edges_df) {
     # Default is 0.5 which centers the text on top of the line
     edges_df$label_position <- 0.5
   }
-  if (!"gap" %in% names(edges_df)) {
-    edges_df$gap <- 1
+  if (!"scale_factor" %in% names(edges_df)) {
+    edges_df$scale_factor <- 1
   }
   return(edges_df)
 }
