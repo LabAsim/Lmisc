@@ -14,7 +14,7 @@ Expected columns include:
   \item{from}{Node ID of the source node}
   \item{to}{Node ID of the target node}
   \item{curvature}{Curvature flag (0 for straight lines, 1 for curved)}
-  \item{gap}{Optional gap offset from node borders (default: 0)}
+  \item{scale_factor}{Optional scale factor to shrink the lines (default: 1)}
   \item{pvalue}{Statistical significance value for styling}
   \item{est}{Effect estimate displayed on edge labels}
   \item{ci.lower}{Lower bound of confidence interval}
