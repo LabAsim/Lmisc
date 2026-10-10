@@ -852,9 +852,9 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
         if (row$is_vertical && row$goes_down) {
           if (row$scale_factor >= 0 && row$scale_factor <= 1) {
             adj_coords <- shrink_endpoints(
-              x1 = row$x_from - row$half_w_from,
+              x1 = row$x_from + row$half_w_from,
               y1 = row$y_from,
-              x2 = row$x_to - row$half_w_to,
+              x2 = row$x_to + row$half_w_to,
               y2 = row$y_to,
               factor = row$scale_factor
             )
