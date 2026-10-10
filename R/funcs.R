@@ -682,11 +682,11 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
       if (row$curvature_amount > 0) {
         # Vertical alignment (same X)
         if (row$is_vertical && row$goes_down) {
-          if (row$scale_factor >= 0 && row$scale_factor <= 1) {
+          if (row$scale_factor > 0 && row$scale_factor <= 1) {
             adj_coords <- shrink_endpoints(
-              x1 = row$x_from - row$half_w_from,
+              x1 = row$x_from - row$half_w_from, # Left side
               y1 = row$y_from,
-              x2 = row$x_to - row$half_w_to,
+              x2 = row$x_to - row$half_w_to, # Left side
               y2 = row$y_to,
               factor = row$scale_factor
             )
@@ -695,15 +695,15 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
             row$xend_adj <- adj_coords$x2
             row$yend_adj <- adj_coords$y2 # Top of target
           } else {
-            row$xstart_adj <- row$x_from - row$half_w_from # Left side
+            row$xstart_adj <- row$x_from
             row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to - row$half_w_to # Left side
+            row$xend_adj <- row$x_to
             row$yend_adj <- row$y_to
           }
         }
         if (row$is_vertical && row$goes_up) {
           # Vertical  + up
-          if (row$scale_factor >= 0 && row$scale_factor <= 1) {
+          if (row$scale_factor > 0 && row$scale_factor <= 1) {
             adj_coords <- shrink_endpoints(
               x1 = row$x_from + row$half_w_from,
               y1 = row$y_from,
@@ -716,14 +716,14 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
             row$xend_adj <- adj_coords$x2
             row$yend_adj <- adj_coords$y2 # Top of target
           } else {
-            row$xstart_adj <- row$x_from + row$half_w_from # right side
+            row$xstart_adj <- row$x_from
             row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to + row$half_w_to # right side
+            row$xend_adj <- row$x_to
             row$yend_adj <- row$y_to
           }
           # Horizontal alignment (same Y)
         } else if (row$is_horizontal && row$goes_right) {
-          if (row$scale_factor >= 0 && row$scale_factor <= 1) {
+          if (row$scale_factor > 0 && row$scale_factor <= 1) {
             adj_coords <- shrink_endpoints(
               x1 = row$x_from,
               y1 = row$y_from - row$half_h_from,
@@ -737,12 +737,12 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
             row$yend_adj <- adj_coords$y2 # Top of target
           } else {
             row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from - row$half_h_from # Top of source
+            row$ystart_adj <- row$y_from #- row$half_h_from # Top of source
             row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to - row$half_h_to # Top of target
+            row$yend_adj <- row$y_to #- row$half_h_to # Top of target
           }
         } else if (row$is_horizontal && row$goes_left) {
-          if (row$scale_factor >= 0 && row$scale_factor <= 1) {
+          if (row$scale_factor > 0 && row$scale_factor <= 1) {
             adj_coords <- shrink_endpoints(
               x1 = row$x_from,
               y1 = row$y_from + row$half_h_from,
@@ -756,14 +756,14 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
             row$yend_adj <- adj_coords$y2 # Top of target
           } else {
             row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from + row$half_h_from # Top of source
+            row$ystart_adj <- row$y_from #+ row$half_h_from # Top of source
             row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to + row$half_h_to # Top of target
+            row$yend_adj <- row$y_to #+ row$half_h_to # Top of target
           }
 
           # Upwards + Right
         } else if (row$goes_up && row$goes_right) {
-          if (row$scale_factor >= 0 && row$scale_factor <= 1) {
+          if (row$scale_factor > 0 && row$scale_factor <= 1) {
             adj_coords <- shrink_endpoints(
               x1 = row$x_from + row$half_w_from,
               y1 = row$y_from,
@@ -776,15 +776,15 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
             row$xend_adj <- adj_coords$x2
             row$yend_adj <- adj_coords$y2 # Top of target
           } else {
-            row$xstart_adj <- row$x_from + row$half_w_from # Right of source
+            row$xstart_adj <- row$x_from #+ row$half_w_from # Right of source
             row$ystart_adj <- row$y_from
             row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to - row$half_h_to # Bottom of target
+            row$yend_adj <- row$y_to #- row$half_h_to # Bottom of target
           }
 
           # Upwards + Left
         } else if (row$goes_up && row$goes_left) {
-          if (row$scale_factor >= 0 && row$scale_factor <= 1) {
+          if (row$scale_factor > 0 && row$scale_factor <= 1) {
             adj_coords <- shrink_endpoints(
               x1 = row$x_from,
               y1 = row$y_from + row$half_h_from,
@@ -800,11 +800,11 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
             row$xstart_adj <- row$x_from #- row$half_w_from # Left of source
             row$ystart_adj <- row$y_from
             row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to - row$half_h_to # Bottom of target
+            row$yend_adj <- row$y_to #- row$half_h_to # Bottom of target
           }
           # Downwards + Right
         } else if (row$goes_down && row$goes_right) {
-          if (row$scale_factor >= 0 && row$scale_factor <= 1) {
+          if (row$scale_factor > 0 && row$scale_factor <= 1) {
             adj_coords <- shrink_endpoints(
               x1 = row$x_from,
               y1 = row$y_from - row$half_h_from,
@@ -818,13 +818,13 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
             row$yend_adj <- adj_coords$y2 # Top of target
           } else {
             row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from - row$half_h_from # Bottom of source
-            row$xend_adj <- row$x_to - row$half_w_to # left of source
+            row$ystart_adj <- row$y_from #- row$half_h_from # Bottom of source
+            row$xend_adj <- row$x_to #- row$half_w_to # left of source
             row$yend_adj <- row$y_to
           }
           # Downwards + Left
         } else if (row$goes_down && row$goes_left) {
-          if (row$scale_factor >= 0 && row$scale_factor <= 1) {
+          if (row$scale_factor > 0 && row$scale_factor <= 1) {
             adj_coords <- shrink_endpoints(
               x1 = row$x_from - row$half_w_from,
               y1 = row$y_from,
@@ -837,10 +837,10 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
             row$xend_adj <- adj_coords$x2
             row$yend_adj <- adj_coords$y2 # Top of target
           } else {
-            row$xstart_adj <- row$x_from - row$half_w_from # left of source
+            row$xstart_adj <- row$x_from #- row$half_w_from # left of source
             row$ystart_adj <- row$y_from
             row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to + row$half_h_to # Top of target
+            row$yend_adj <- row$y_to #+ row$half_h_to # Top of target
           }
         }
       } else {
@@ -850,7 +850,7 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
 
         # Vertical alignment (same X)
         if (row$is_vertical && row$goes_down) {
-          if (row$scale_factor >= 0 && row$scale_factor <= 1) {
+          if (row$scale_factor > 0 && row$scale_factor <= 1) {
             adj_coords <- shrink_endpoints(
               x1 = row$x_from + row$half_w_from,
               y1 = row$y_from,
@@ -863,13 +863,13 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
             row$xend_adj <- adj_coords$x2
             row$yend_adj <- adj_coords$y2 # Top of target
           } else {
-            row$xstart_adj <- row$x_from + row$half_w_from # Right side
+            row$xstart_adj <- row$x_from #+ row$half_w_from # Right side
             row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to + row$half_w_to # Right side
+            row$xend_adj <- row$x_to #+ row$half_w_to # Right side
             row$yend_adj <- row$y_to
           }
         } else if (row$is_vertical && row$goes_up) {
-          if (row$scale_factor >= 0 && row$scale_factor <= 1) {
+          if (row$scale_factor > 0 && row$scale_factor <= 1) {
             adj_coords <- shrink_endpoints(
               x1 = row$x_from - row$half_w_from,
               y1 = row$y_from,
@@ -882,14 +882,14 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
             row$xend_adj <- adj_coords$x2
             row$yend_adj <- adj_coords$y2 # Top of target
           } else {
-            row$xstart_adj <- row$x_from - row$half_w_from # left side
+            row$xstart_adj <- row$x_from #- row$half_w_from # left side
             row$ystart_adj <- row$y_from
-            row$xend_adj <- row$x_to - row$half_w_to # left side
+            row$xend_adj <- row$x_to #- row$half_w_to # left side
             row$yend_adj <- row$y_to
           }
         } else if (row$is_horizontal && row$goes_left) {
           # Horizontal alignment (same Y) + left
-          if (row$scale_factor >= 0 && row$scale_factor <= 1) {
+          if (row$scale_factor > 0 && row$scale_factor <= 1) {
             adj_coords <- shrink_endpoints(
               x1 = row$x_from,
               y1 = row$y_from - row$half_h_from,
@@ -903,13 +903,13 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
             row$yend_adj <- adj_coords$y2 # Top of target
           } else {
             row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from - row$half_h_from # Bottom of source
+            row$ystart_adj <- row$y_from #- row$half_h_from # Bottom of source
             row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to - row$half_h_to # bottom of target
+            row$yend_adj <- row$y_to #- row$half_h_to # bottom of target
           }
         } else if (row$is_horizontal && row$goes_right) {
           # Horizontal and right
-          if (row$scale_factor >= 0 && row$scale_factor <= 1) {
+          if (row$scale_factor > 0 && row$scale_factor <= 1) {
             adj_coords <- shrink_endpoints(
               x1 = row$x_from,
               y1 = row$y_from + row$half_h_from,
@@ -923,14 +923,14 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
             row$yend_adj <- adj_coords$y2 # Top of target
           } else {
             row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from + row$half_h_from # Top of source
+            row$ystart_adj <- row$y_from #+ row$half_h_from # Top of source
             row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to + row$half_h_to # top of target
+            row$yend_adj <- row$y_to #+ row$half_h_to # top of target
           }
 
           # Upwards + Right (↗️)
         } else if (row$goes_up && row$goes_right) {
-          if (row$scale_factor >= 0 && row$scale_factor <= 1) {
+          if (row$scale_factor > 0 && row$scale_factor <= 1) {
             adj_coords <- shrink_endpoints(
               x1 = row$x_from,
               y1 = row$y_from + row$half_h_from,
@@ -943,15 +943,15 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
             row$xend_adj <- adj_coords$x2
             row$yend_adj <- adj_coords$y2 # Top of target
           } else {
-            row$xstart_adj <- row$x_from + row$half_w_from # Right of source
+            row$xstart_adj <- row$x_from #+ row$half_w_from # Right of source
             row$ystart_adj <- row$y_from
             row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to - row$half_h_to # Bottom of target
+            row$yend_adj <- row$y_to #- row$half_h_to # Bottom of target
           }
 
           # Upwards + Left (↖️)
         } else if (row$goes_up && row$goes_left) {
-          if (row$scale_factor >= 0 && row$scale_factor <= 1) {
+          if (row$scale_factor > 0 && row$scale_factor <= 1) {
             adj_coords <- shrink_endpoints(
               x1 = row$x_from - row$half_w_from,
               y1 = row$y_from,
@@ -964,15 +964,15 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
             row$xend_adj <- adj_coords$x2
             row$yend_adj <- adj_coords$y2 # Top of target
           } else {
-            row$xstart_adj <- row$x_from - row$half_w_from # Left of source
+            row$xstart_adj <- row$x_from #- row$half_w_from # Left of source
             row$ystart_adj <- row$y_from
             row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to - row$half_h_to # Bottom of target
+            row$yend_adj <- row$y_to #- row$half_h_to # Bottom of target
           }
 
           # Downwards + Right (↘️)
         } else if (row$goes_down && row$goes_right) {
-          if (row$scale_factor >= 0 && row$scale_factor <= 1) {
+          if (row$scale_factor > 0 && row$scale_factor <= 1) {
             adj_coords <- shrink_endpoints(
               x1 = row$x_from + row$half_w_from,
               y1 = row$y_from,
@@ -985,15 +985,15 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
             row$xend_adj <- adj_coords$x2
             row$yend_adj <- adj_coords$y2 # Top of target
           } else {
-            row$xstart_adj <- row$x_from + row$half_w_from # Right of source
+            row$xstart_adj <- row$x_from #+ row$half_w_from # Right of source
             row$ystart_adj <- row$y_from
             row$xend_adj <- row$x_to
-            row$yend_adj <- row$y_to + row$half_h_to # Top of target
+            row$yend_adj <- row$y_to #+ row$half_h_to # Top of target
           }
 
           # Downwards + Left (↙️)
         } else if (row$goes_down && row$goes_left) {
-          if (row$scale_factor >= 0 && row$scale_factor <= 1) {
+          if (row$scale_factor > 0 && row$scale_factor <= 1) {
             adj_coords <- shrink_endpoints(
               x1 = row$x_from,
               y1 = row$y_from - row$half_h_from,
@@ -1007,8 +1007,8 @@ adjust_edges_by_box <- function(edges_df, nodes_df) {
             row$yend_adj <- adj_coords$y2 # Top of target
           } else {
             row$xstart_adj <- row$x_from
-            row$ystart_adj <- row$y_from - row$half_h_from # Bottom of source
-            row$xend_adj <- row$x_to + row$half_w_to # Right of target
+            row$ystart_adj <- row$y_from #- row$half_h_from # Bottom of source
+            row$xend_adj <- row$x_to #+ row$half_w_to # Right of target
             row$yend_adj <- row$y_to
           }
         }

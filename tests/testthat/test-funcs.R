@@ -1924,3 +1924,656 @@ withr::with_seed(
     })
   }
 )
+
+
+withr::with_seed(
+  seed = 123,
+  code = {
+    test_that("curved paths with positive and negative curvature", {
+      if (identical(Sys.getenv("VDIFR_SKIP_CHECK"), "true")) {
+        skip("Skipping visual tests during devtools::check")
+      }
+
+      data("FacialBurns", package = "Lmisc")
+
+      model <- "
+        HADS ~ Age
+        # Age ~ HADS
+        HADS ~ Sex
+        # Sex ~ HADS
+        HADS ~ TBSA
+        TBSA ~ HADS
+
+        TBSA ~ Age
+        # Age ~ TBSA
+
+        TBSA ~ Sex
+        # Sex ~ TBSA
+        Age ~ Sex
+        # Sex ~ Age
+
+        "
+
+      fit_model <- lavaan::sem(
+        model = model,
+        data = FacialBurns,
+        missing = "fiml"
+      )
+      summary(fit_model)
+
+      dag <- ggdag::dagify(
+        HADS ~ Age,
+        # Age ~ HADS,
+        HADS ~ Sex,
+        # Sex ~ HADS,
+        HADS ~ TBSA,
+        TBSA ~ HADS,
+
+        TBSA ~ Age,
+        # Age ~ TBSA,
+
+        TBSA ~ Sex,
+        # Sex ~ TBSA,
+        Age ~ Sex,
+        # Sex ~ Age,
+
+        outcome = "TBSA",
+        coords = list(
+          x = c(
+            TBSA = 0,
+            HADS = 4,
+            Age = 2,
+            Sex = 2
+          ),
+          y = c(
+            HADS = 0,
+            TBSA = 0,
+            Age = 1,
+            Sex = -1
+          )
+        ),
+        labels = c(
+          # If you need to change the names, specify the labels here
+          HADS = "HADS",
+          TBSA = "TBSA",
+          Age = "Age",
+          Sex = "Sex"
+        )
+      )
+
+      tidy_dag <- ggdag::tidy_dagitty(dag)
+
+      nodes <- tidy_dag$data %>%
+        filter(!duplicated(name)) %>%
+        dplyr::transmute(
+          node_id = name,
+          x = x,
+          y = y,
+          label = label
+        ) %>%
+        mutate(node_id = label)
+
+      # If you need curved paths
+      edges <- tidy_dag$data %>%
+        mutate(
+          curvature = case_when(
+            name == "Sex" & to == "HADS" ~ 1,
+            name == "Sex" & to == "Age" ~ 0,
+            TRUE ~ 1
+          )
+        ) |>
+        mutate(
+          curvature_amount = case_when(
+            name == "Sex" & to == "HADS" ~ 0.3,
+            TRUE ~ 0.1
+          )
+        )
+
+      parameters_fit_model <- modify_parameter_estimates(
+        df = lavaan::parameterestimates(
+          fit_model,
+          standardized = F
+        ),
+        round_digits = 2
+      )
+
+      temp <- data.frame(
+        # Extract only the regression paths
+        parameters_fit_model[
+          parameters_fit_model$op == "~",
+        ]
+      )
+
+      edges <- left_join(
+        x = edges,
+        y = temp,
+        by = join_by(
+          # rhs =  right hand side = where the path starts
+          # lhs = left hand side = where the path ends
+          name == rhs,
+          to == lhs
+        )
+      )
+
+      # Rename and keep only what we need
+      edges <- edges %>%
+        filter(!is.na(to)) %>%
+        transmute(
+          from = name,
+          to = to,
+          curvature = curvature,
+          curvature_amount = curvature_amount,
+          pvalue = 0.55,
+          est = est,
+          ci.lower = ci.lower,
+          ci.upper = ci.upper
+        )
+
+      edges <- edges |>
+        mutate(
+          hjust = case_when(
+            from == "Sex" & to == "HADS" ~ 0.5,
+            .default = 0.5
+          )
+        ) |>
+        mutate(
+          vjust = case_when(
+            from == "Sex" & to == "HADS" ~ 0.5,
+            .default = 0.5
+          )
+        ) |>
+        mutate(
+          curvature = case_when(
+            from == "Sex" & to == "HADS" ~ 1,
+            from == "Sex" & to == "Age" ~ 0,
+            TRUE ~ 1
+          )
+        ) |>
+        mutate(
+          curvature_amount = case_when(
+            from == "Sex" & to == "HADS" ~ 0.3,
+            from == "Sex" & to == "TBSA" ~ -0.3,
+            TRUE ~ 0.1
+          )
+        ) |>
+        mutate(
+          scale_factor = case_when(
+            from == "Sex" & to == "HADS" ~ 0.86,
+            from == "Sex" & to == "Age" ~ 0.80,
+            from == "Sex" & to == "TBSA" ~ 0.85,
+            .default = 1
+          )
+        )
+
+      plot_ <- plot_dag(
+        nodes = nodes,
+        edges = edges,
+        label_size = 10,
+        label_size_unit = "pt",
+        text_size = 4,
+        xlim = c(-0.5, 4.4),
+        ylim = c(-1.5, 1.5)
+      )
+
+      vdiffr::expect_doppelganger(
+        "Shrink points ",
+        plot_
+      )
+      ###############
+      # Second plot #
+      ###############
+
+      model <- "
+        HADS ~ Age
+        # Age ~ HADS
+        HADS ~ Sex
+        # Sex ~ HADS
+        HADS ~ TBSA
+        TBSA ~ HADS
+
+        TBSA ~ Age
+        # Age ~ TBSA
+
+        TBSA ~ Sex
+        # Sex ~ TBSA
+        Age ~ Sex
+        Sex ~ Age
+
+        "
+
+      fit_model <- lavaan::sem(
+        model = model,
+        data = FacialBurns,
+        missing = "fiml"
+      )
+      summary(fit_model)
+
+      dag <- ggdag::dagify(
+        HADS ~ Age,
+        # Age ~ HADS,
+        HADS ~ Sex,
+        # Sex ~ HADS,
+        HADS ~ TBSA,
+        TBSA ~ HADS,
+
+        TBSA ~ Age,
+        # Age ~ TBSA,
+
+        TBSA ~ Sex,
+        # Sex ~ TBSA,
+        Age ~ Sex,
+        Sex ~ Age,
+
+        outcome = "TBSA",
+        coords = list(
+          x = c(
+            TBSA = 0,
+            HADS = 4,
+            Age = 2,
+            Sex = 2
+          ),
+          y = c(
+            HADS = 0,
+            TBSA = 0,
+            Age = 1,
+            Sex = -1
+          )
+        ),
+        labels = c(
+          # If you need to change the names, specify the labels here
+          HADS = "HADS",
+          TBSA = "TBSA",
+          Age = "Age",
+          Sex = "Sex"
+        )
+      )
+
+      tidy_dag <- ggdag::tidy_dagitty(dag)
+
+      nodes <- tidy_dag$data %>%
+        filter(!duplicated(name)) %>%
+        dplyr::transmute(
+          node_id = name,
+          x = x,
+          y = y,
+          label = label
+        ) %>%
+        mutate(node_id = label)
+
+      # If you need curved paths
+      edges <- tidy_dag$data %>%
+        mutate(
+          curvature = case_when(
+            name == "Sex" & to == "HADS" ~ 1,
+            name == "Sex" & to == "Age" ~ 0,
+            TRUE ~ 1
+          )
+        ) |>
+        mutate(
+          curvature_amount = case_when(
+            name == "Sex" & to == "HADS" ~ 0.3,
+            TRUE ~ 0.1
+          )
+        )
+
+      parameters_fit_model <- modify_parameter_estimates(
+        df = lavaan::parameterestimates(
+          fit_model,
+          standardized = F
+        ),
+        round_digits = 2
+      )
+
+      temp <- data.frame(
+        # Extract only the regression paths
+        parameters_fit_model[
+          parameters_fit_model$op == "~",
+        ]
+      )
+
+      edges <- left_join(
+        x = edges,
+        y = temp,
+        by = join_by(
+          # rhs =  right hand side = where the path starts
+          # lhs = left hand side = where the path ends
+          name == rhs,
+          to == lhs
+        )
+      )
+
+      # Rename and keep only what we need
+      edges <- edges %>%
+        filter(!is.na(to)) %>%
+        transmute(
+          from = name,
+          to = to,
+          curvature = curvature,
+          curvature_amount = curvature_amount,
+          pvalue = 0.55,
+          est = est,
+          ci.lower = ci.lower,
+          ci.upper = ci.upper
+        )
+      edges <- edges |>
+        mutate(
+          hjust = case_when(
+            from == "Sex" & to == "HADS" ~ 0.5,
+            .default = 0.5
+          )
+        ) |>
+        mutate(
+          vjust = case_when(
+            from == "Sex" & to == "HADS" ~ 0.5,
+            .default = 0.5
+          )
+        ) |>
+        mutate(
+          curvature = case_when(
+            from == "Sex" & to == "HADS" ~ 1,
+            from == "Sex" & to == "Age" ~ 0,
+            from == "Age" & to == "Sex" ~ 1,
+            from == "HADS" & to == "TBSA" ~ 1,
+            TRUE ~ 1
+          )
+        ) |>
+        mutate(
+          curvature_amount = case_when(
+            from == "Sex" & to == "HADS" ~ 0.3,
+            from == "Sex" & to == "TBSA" ~ 0.3,
+            from == "Age" & to == "Sex" ~ 0.3,
+            from == "HADS" & to == "TBSA" ~ 0.1,
+            TRUE ~ 0.1
+          )
+        ) |>
+        mutate(
+          scale_factor = case_when(
+            from == "Sex" & to == "HADS" ~ 0.86,
+            from == "Sex" & to == "Age" ~ 0.80,
+            from == "Sex" & to == "TBSA" ~ 0.85,
+            from == "Age" & to == "Sex" ~ 0.90,
+            from == "HADS" & to == "TBSA" ~ 0.90,
+            .default = 1
+          )
+        )
+
+      plot_2 <- plot_dag(
+        nodes = nodes,
+        edges = edges,
+        label_size = 10,
+        label_size_unit = "pt",
+        text_size = 4,
+        xlim = c(-0.5, 4.4),
+        ylim = c(-1.5, 1.5)
+      )
+
+      vdiffr::expect_doppelganger(
+        "Shrink points2",
+        plot_2
+      )
+    })
+  }
+)
+
+
+withr::with_seed(
+  seed = 123,
+  code = {
+    test_that("curved paths with positive and negative curvature", {
+      if (identical(Sys.getenv("VDIFR_SKIP_CHECK"), "true")) {
+        skip("Skipping visual tests during devtools::check")
+      }
+
+      data("FacialBurns", package = "Lmisc")
+
+      model <- "
+        HADS ~ Age
+        # Age ~ HADS
+        HADS ~ Sex
+        # Sex ~ HADS
+        HADS ~ TBSA
+        TBSA ~ HADS
+
+        TBSA ~ Age
+        # Age ~ TBSA
+
+        TBSA ~ Sex
+        # Sex ~ TBSA
+        Age ~ Sex
+        Sex ~ Age
+
+        "
+
+      fit_model <- lavaan::sem(
+        model = model,
+        data = FacialBurns,
+        missing = "fiml"
+      )
+      summary(fit_model)
+
+      dag <- ggdag::dagify(
+        HADS ~ Age,
+        # Age ~ HADS,
+        HADS ~ Sex,
+        # Sex ~ HADS,
+        HADS ~ TBSA,
+        TBSA ~ HADS,
+
+        TBSA ~ Age,
+        # Age ~ TBSA,
+
+        TBSA ~ Sex,
+        # Sex ~ TBSA,
+        Age ~ Sex,
+        Sex ~ Age,
+
+        outcome = "TBSA",
+        coords = list(
+          x = c(
+            TBSA = 0,
+            HADS = 4,
+            Age = 2,
+            Sex = 2
+          ),
+          y = c(
+            HADS = 0,
+            TBSA = 0,
+            Age = 1,
+            Sex = -1
+          )
+        ),
+        labels = c(
+          # If you need to change the names, specify the labels here
+          HADS = "HADS",
+          TBSA = "TBSA",
+          Age = "Age",
+          Sex = "Sex"
+        )
+      )
+
+      tidy_dag <- ggdag::tidy_dagitty(dag)
+
+      nodes <- tidy_dag$data %>%
+        filter(!duplicated(name)) %>%
+        dplyr::transmute(
+          node_id = name,
+          x = x,
+          y = y,
+          label = label
+        ) %>%
+        mutate(node_id = label)
+
+      # If you need curved paths
+      edges <- tidy_dag$data %>%
+        mutate(
+          curvature = case_when(
+            name == "Sex" & to == "HADS" ~ 1,
+            name == "Sex" & to == "Age" ~ 0,
+            TRUE ~ 1
+          )
+        ) |>
+        mutate(
+          curvature_amount = case_when(
+            name == "Sex" & to == "HADS" ~ 0.3,
+            TRUE ~ 0.1
+          )
+        )
+
+      parameters_fit_model <- modify_parameter_estimates(
+        df = lavaan::parameterestimates(
+          fit_model,
+          standardized = F
+        ),
+        round_digits = 2
+      )
+
+      temp <- data.frame(
+        # Extract only the regression paths
+        parameters_fit_model[
+          parameters_fit_model$op == "~",
+        ]
+      )
+
+      edges <- left_join(
+        x = edges,
+        y = temp,
+        by = join_by(
+          # rhs =  right hand side = where the path starts
+          # lhs = left hand side = where the path ends
+          name == rhs,
+          to == lhs
+        )
+      )
+
+      # Rename and keep only what we need
+      edges <- edges %>%
+        filter(!is.na(to)) %>%
+        transmute(
+          from = name,
+          to = to,
+          curvature = curvature,
+          curvature_amount = curvature_amount,
+          pvalue = 0.55,
+          est = est,
+          ci.lower = ci.lower,
+          ci.upper = ci.upper
+        )
+      edges <- edges |>
+        mutate(
+          hjust = case_when(
+            from == "Sex" & to == "HADS" ~ 0.5,
+            .default = 0.5
+          )
+        ) |>
+        mutate(
+          vjust = case_when(
+            from == "Sex" & to == "HADS" ~ 0.5,
+            .default = 0.5
+          )
+        ) |>
+        mutate(
+          curvature = case_when(
+            from == "Sex" & to == "HADS" ~ 1,
+            from == "Sex" & to == "Age" ~ 1,
+            from == "Age" & to == "Sex" ~ 1,
+            from == "HADS" & to == "TBSA" ~ 1,
+            TRUE ~ 1
+          )
+        ) |>
+        mutate(
+          curvature_amount = case_when(
+            from == "Sex" & to == "HADS" ~ -0.3,
+            from == "Sex" & to == "TBSA" ~ -0.3,
+            from == "Age" & to == "Sex" ~ -0.3,
+            from == "HADS" & to == "TBSA" ~ -0.1,
+            TRUE ~ -0.1
+          )
+        ) |>
+        mutate(
+          scale_factor = case_when(
+            from == "Sex" & to == "HADS" ~ 0,
+            from == "Sex" & to == "Age" ~ 0,
+            from == "Sex" & to == "TBSA" ~ 0,
+            from == "Age" & to == "Sex" ~ 0,
+            from == "HADS" & to == "TBSA" ~ 0,
+            .default = 0
+          )
+        )
+
+      plot_2 <- plot_dag(
+        nodes = nodes,
+        edges = edges,
+        label_size = 10,
+        label_size_unit = "pt",
+        text_size = 4,
+        xlim = c(-0.5, 4.4),
+        ylim = c(-1.5, 1.5)
+      )
+
+      vdiffr::expect_doppelganger(
+        "Shrink points3",
+        plot_2
+      )
+      ######################
+      # Positive curvature #
+      ######################
+
+      edges <- edges |>
+        mutate(
+          hjust = case_when(
+            from == "Sex" & to == "HADS" ~ 0.5,
+            .default = 0.5
+          )
+        ) |>
+        mutate(
+          vjust = case_when(
+            from == "Sex" & to == "HADS" ~ 0.5,
+            .default = 0.5
+          )
+        ) |>
+        mutate(
+          curvature = case_when(
+            from == "Sex" & to == "HADS" ~ 1,
+            from == "Sex" & to == "Age" ~ 1,
+            from == "Age" & to == "Sex" ~ 1,
+            from == "HADS" & to == "TBSA" ~ 1,
+            TRUE ~ 1
+          )
+        ) |>
+        mutate(
+          curvature_amount = case_when(
+            from == "Sex" & to == "HADS" ~ 0.3,
+            from == "Sex" & to == "TBSA" ~ 0.3,
+            from == "Age" & to == "Sex" ~ 0.3,
+            from == "HADS" & to == "TBSA" ~ 0.1,
+            TRUE ~ 0.1
+          )
+        ) |>
+        mutate(
+          scale_factor = case_when(
+            from == "Sex" & to == "HADS" ~ 0,
+            from == "Sex" & to == "Age" ~ 0,
+            from == "Sex" & to == "TBSA" ~ 0,
+            from == "Age" & to == "Sex" ~ 0,
+            from == "HADS" & to == "TBSA" ~ 0,
+            .default = 0
+          )
+        )
+
+      plot_2 <- plot_dag(
+        nodes = nodes,
+        edges = edges,
+        label_size = 10,
+        label_size_unit = "pt",
+        text_size = 4,
+        xlim = c(-0.5, 4.4),
+        ylim = c(-1.5, 1.5)
+      )
+
+      vdiffr::expect_doppelganger(
+        "curved paths center",
+        plot_2
+      )
+    })
+  }
+)

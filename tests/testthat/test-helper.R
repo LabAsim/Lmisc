@@ -146,3 +146,94 @@ test_that("factor close to zero produces short line", {
 
   expect_equal(result, correct_output)
 })
+
+
+describe("shrink_endpoints", {
+  it("preserves endpoints when factor is 1", {
+    result <- shrink_endpoints(0, 0, 10, 10, factor = 1)
+
+    expect_equal(
+      unname(as.numeric(result[1, ])),
+      c(0, 0, 10, 10)
+    )
+  })
+
+  it("collapses endpoints to the midpoint when factor is 0", {
+    result <- shrink_endpoints(0, 0, 10, 10, factor = 0)
+
+    expect_equal(
+      unname(as.numeric(result[1, ])),
+      c(5, 5, 5, 5)
+    )
+  })
+
+  it("shrinks a horizontal line symmetrically", {
+    result <- shrink_endpoints(0, 0, 10, 0, factor = 0.5)
+
+    expect_equal(
+      unname(as.numeric(result[1, ])),
+      c(2.5, 0, 7.5, 0)
+    )
+  })
+
+  it("shrinks a vertical line symmetrically", {
+    result <- shrink_endpoints(0, 0, 0, 10, factor = 0.5)
+
+    expect_equal(
+      unname(as.numeric(result[1, ])),
+      c(0, 2.5, 0, 7.5)
+    )
+  })
+
+  it("shrinks a diagonal line symmetrically", {
+    result <- shrink_endpoints(0, 0, 8, 4, factor = 0.5)
+
+    expect_equal(
+      unname(as.numeric(result[1, ])),
+      c(2, 1, 6, 3)
+    )
+  })
+
+  it("preserves the midpoint of the original line", {
+    result <- shrink_endpoints(2, 4, 12, 14, factor = 0.3)
+
+    expect_equal(
+      (result$x1 + result$x2) / 2,
+      7
+    )
+
+    expect_equal(
+      (result$y1 + result$y2) / 2,
+      9
+    )
+  })
+
+  it("reduces line length by the specified factor", {
+    result <- shrink_endpoints(0, 0, 3, 4, factor = 0.4)
+
+    new_length <- sqrt(
+      (result$x2 - result$x1)^2 +
+        (result$y2 - result$y1)^2
+    )
+
+    expect_equal(new_length, 5 * 0.4)
+  })
+
+  it("rejects factors outside the interval [0, 1]", {
+    expect_error(
+      shrink_endpoints(0, 0, 10, 10, factor = -0.1)
+    )
+
+    expect_error(
+      shrink_endpoints(0, 0, 10, 10, factor = 1.1)
+    )
+  })
+
+  it("returns the expected data frame structure", {
+    result <- shrink_endpoints(0, 0, 10, 10)
+
+    expect_s3_class(result, "data.frame")
+    expect_named(result, c("x1", "y1", "x2", "y2"))
+    expect_equal(nrow(result), 1L)
+  })
+})
