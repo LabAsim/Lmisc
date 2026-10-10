@@ -190,9 +190,9 @@ edges <- edges |>
     )
   ) |> 
   mutate(
-    gap = case_when(
-      from == "Sex" & to == "HADS" ~ -0.5,
-      .default = -1
+    scale_factor = case_when(
+      from == "Sex" & to == "HADS" ~ 0.8,
+      .default = 1
     )
   )
 
