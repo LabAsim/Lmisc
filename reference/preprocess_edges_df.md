@@ -27,9 +27,9 @@ preprocess_edges_df(edges_df)
 
   :   Curvature flag (0 for straight lines, 1 for curved)
 
-  gap
+  scale_factor
 
-  :   Optional gap offset from node borders (default: 0)
+  :   Optional scale factor to shrink the lines (default: 1)
 
   pvalue
 
