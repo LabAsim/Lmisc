@@ -65,3 +65,25 @@ modify_parameter_estimates <- function(
     )
   return(df)
 }
+
+shrink_endpoints <- function(x1, y1, x2, y2, factor = 0.9) {
+  stopifnot(factor >= 0, factor <= 1)
+
+  # Direction from start to end
+  dx <- x2 - x1
+  dy <- y2 - y1
+
+  # Move each endpoint inward by the same fraction
+  x1_new <- x1 + ((1 - (factor)) / 2) * dx
+  y1_new <- y1 + ((1 - (factor)) / 2) * dy
+
+  x2_new <- x2 - ((1 - (factor)) / 2) * dx
+  y2_new <- y2 - ((1 - (factor)) / 2) * dy
+
+  data.frame(
+    x1 = x1_new,
+    y1 = y1_new,
+    x2 = x2_new,
+    y2 = y2_new
+  )
+}
