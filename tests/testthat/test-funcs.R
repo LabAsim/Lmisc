@@ -185,7 +185,10 @@ test_that("returns data frame with expected columns", {
   )
 
   expect_s3_class(result, "data.frame")
-  expect_true(all(c("label", "x", "y", "box_w_cm", "box_h_cm", "half_w", "half_h") %in% names(result)))
+  expect_true(all(
+    c("label", "x", "y", "box_w_cm", "box_h_cm", "half_w", "half_h") %in%
+      names(result)
+  ))
 })
 
 test_that("preserves number of rows", {
@@ -476,79 +479,98 @@ test_that("integration test with realistic network plot nodes", {
 
 test_that("returns named vector with x and y coordinates", {
   result <- line_rect_intersection(
-    x0 = 0, y0 = 5,
-    x1 = 10, y1 = 5,
-    half_w = 2, half_h = 1.5
+    x0 = 0,
+    y0 = 5,
+    x1 = 10,
+    y1 = 5,
+    half_w = 2,
+    half_h = 1.5
   )
 
   expect_equal(class(result), "numeric")
   expect_length(result, 2)
   expect_equal(names(result), c("x", "y"))
-  expect_equal(result, c(x = 9, y = 5))
+  expect_equal(result, c(x = 8, y = 5))
 })
 
 test_that("horizontal line from left hits right side", {
   result <- line_rect_intersection(
-    x0 = 0, y0 = 5,
-    x1 = 10, y1 = 5,
-    half_w = 2, half_h = 1.5
+    x0 = 0,
+    y0 = 5,
+    x1 = 10,
+    y1 = 5,
+    half_w = 2,
+    half_h = 1.5
   )
 
-  expect_equal(result["x"], c(x = 9), tolerance = 1e-10)
+  expect_equal(result["x"], c(x = 8), tolerance = 1e-10)
   expect_equal(result["y"], c(y = 5), tolerance = 1e-10)
 })
 
 test_that("horizontal line from right hits left side", {
   result <- line_rect_intersection(
-    x0 = 10, y0 = 5,
-    x1 = 0, y1 = 5,
-    half_w = 2, half_h = 1.5
+    x0 = 10,
+    y0 = 5,
+    x1 = 0,
+    y1 = 5,
+    half_w = 2,
+    half_h = 1.5
   )
 
-  expect_equal(result["x"], c(x = 1), tolerance = 1e-10)
+  expect_equal(result["x"], c(x = 2), tolerance = 1e-10)
   expect_equal(result["y"], c(y = 5), tolerance = 1e-10)
 })
 
 test_that("vertical line from bottom hits top side", {
   result <- line_rect_intersection(
-    x0 = 5, y0 = 0,
-    x1 = 5, y1 = 10,
-    half_w = 2, half_h = 1.5
+    x0 = 5,
+    y0 = 0,
+    x1 = 5,
+    y1 = 10,
+    half_w = 2,
+    half_h = 1.5
   )
 
   expect_equal(result["x"], c(x = 5), tolerance = 1e-10)
-  expect_equal(result["y"], c(y = 9.5), tolerance = 1e-10)
+  expect_equal(result["y"], c(y = 8.5), tolerance = 1e-10)
 })
 
 test_that("vertical line from top hits bottom side", {
   result <- line_rect_intersection(
-    x0 = 5, y0 = 10,
-    x1 = 5, y1 = 0,
-    half_w = 2, half_h = 1.5
+    x0 = 5,
+    y0 = 10,
+    x1 = 5,
+    y1 = 0,
+    half_w = 2,
+    half_h = 1.5
   )
 
   expect_equal(result["x"], c(x = 5), tolerance = 1e-10)
-  expect_equal(result["y"], c(y = 0.5), tolerance = 1e-10)
+  expect_equal(result["y"], c(y = 1.5), tolerance = 1e-10)
 })
 
 test_that("line from outside to center hits near-side boundary", {
-
   result <- line_rect_intersection(
-    x0 = -10, y0 = 5,
-    x1 = 5, y1 = 5,
-    half_w = 2, half_h = 1.5
+    x0 = -10,
+    y0 = 5,
+    x1 = 5,
+    y1 = 5,
+    half_w = 2,
+    half_h = 1.5
   )
 
-  expect_equal(result["x"], c(x = 4), tolerance = 1e-10) # left edge
+  expect_equal(result["x"], c(x = 3), tolerance = 1e-10) # left edge
   expect_equal(result["y"], c(y = 5), tolerance = 1e-10)
 })
 
 test_that("when multiple intersections exist, closest to start is chosen", {
-
   result <- line_rect_intersection(
-    x0 = 0, y0 = 5,
-    x1 = 20, y1 = 5,
-    half_w = 2, half_h = 1.5
+    x0 = 0,
+    y0 = 5,
+    x1 = 20,
+    y1 = 5,
+    half_w = 2,
+    half_h = 1.5
   )
 
   expect_equal(result["x"], c(x = 19.0), tolerance = 1e-1)
@@ -557,20 +579,26 @@ test_that("when multiple intersections exist, closest to start is chosen", {
 
 test_that("line aimed at corner returns corner point", {
   result <- line_rect_intersection(
-    x0 = 0, y0 = 0,
-    x1 = 7, y1 = 6.5,
-    half_w = 2, half_h = 1.5
+    x0 = 0,
+    y0 = 0,
+    x1 = 7,
+    y1 = 6.5,
+    half_w = 2,
+    half_h = 1.5
   )
 
-  expect_equal(result["x"], c(x = 6.12), tolerance = 1e-1)
-  expect_equal(result["y"], c(y = 5.68), tolerance = 1e-2)
+  expect_equal(result["x"], c(x = 5.38), tolerance = 1e-1)
+  expect_equal(result["y"], c(y = 5.00), tolerance = 1e-2)
 })
 
 test_that("handles very large rectangles correctly", {
   result <- line_rect_intersection(
-    x0 = 0, y0 = 0,
-    x1 = 100, y1 = 100,
-    half_w = 100, half_h = 100
+    x0 = 0,
+    y0 = 0,
+    x1 = 100,
+    y1 = 100,
+    half_w = 100,
+    half_h = 100
   )
 
   expect_true(!is.na(result["x"]))
@@ -579,9 +607,12 @@ test_that("handles very large rectangles correctly", {
 
 test_that("near-horizontal line handled correctly", {
   result <- line_rect_intersection(
-    x0 = 0, y0 = 5.1,
-    x1 = 10, y1 = 5.2,
-    half_w = 2, half_h = 1.5
+    x0 = 0,
+    y0 = 5.1,
+    x1 = 10,
+    y1 = 5.2,
+    half_w = 2,
+    half_h = 1.5
   )
 
   expect_true(!is.na(result["x"]))
@@ -590,9 +621,12 @@ test_that("near-horizontal line handled correctly", {
 
 test_that("near-vertical line handled correctly", {
   result <- line_rect_intersection(
-    x0 = 5.1, y0 = 0,
-    x1 = 5.2, y1 = 10,
-    half_w = 2, half_h = 1.5
+    x0 = 5.1,
+    y0 = 0,
+    x1 = 5.2,
+    y1 = 10,
+    half_w = 2,
+    half_h = 1.5
   )
 
   expect_true(!is.na(result["x"]))
@@ -601,9 +635,12 @@ test_that("near-vertical line handled correctly", {
 
 test_that("degenerate line (zero length) returns center", {
   result <- line_rect_intersection(
-    x0 = 0, y0 = 0,
-    x1 = 0, y1 = 0,
-    half_w = 2, half_h = 1.5
+    x0 = 0,
+    y0 = 0,
+    x1 = 0,
+    y1 = 0,
+    half_w = 2,
+    half_h = 1.5
   )
 
   expect_equal(result["x"], c(x = 0), tolerance = 1e-10)
@@ -613,28 +650,32 @@ test_that("degenerate line (zero length) returns center", {
 
 test_that("return values are numeric type", {
   result <- line_rect_intersection(
-    x0 = 0, y0 = 5,
-    x1 = 10, y1 = 5,
-    half_w = 2, half_h = 1.5
+    x0 = 0,
+    y0 = 5,
+    x1 = 10,
+    y1 = 5,
+    half_w = 2,
+    half_h = 1.5
   )
 
   expect_type(result, "double")
 })
 
 test_that("line perpendicular to edge hits that edge directly", {
-
   result <- line_rect_intersection(
-    x0 = 10, y0 = 5,
-    x1 = 0, y1 = 5,
-    half_w = 2, half_h = 1.5
+    x0 = 10,
+    y0 = 5,
+    x1 = 0,
+    y1 = 5,
+    half_w = 2,
+    half_h = 1.5
   )
 
-  expect_equal(result["x"], c(x = 1), tolerance = 1e-10)
+  expect_equal(result["x"], c(x = 2), tolerance = 1e-10)
   expect_equal(result["y"], c(y = 5), tolerance = 1e-10)
 })
 
 test_that("integration: simulates arrow endpoint calculation", {
-
   arrow_start_x <- 10
   arrow_start_y <- 10
   target_node_center_x <- 50
@@ -643,9 +684,12 @@ test_that("integration: simulates arrow endpoint calculation", {
   target_half_height <- 2
 
   result <- line_rect_intersection(
-    x0 = arrow_start_x, y0 = arrow_start_y,
-    x1 = target_node_center_x, y1 = target_node_center_y,
-    half_w = target_half_width, half_h = target_half_height
+    x0 = arrow_start_x,
+    y0 = arrow_start_y,
+    x1 = target_node_center_x,
+    y1 = target_node_center_y,
+    half_w = target_half_width,
+    half_h = target_half_height
   )
 
   expect_equal(
@@ -658,16 +702,18 @@ test_that("integration: simulates arrow endpoint calculation", {
 
 test_that("correctly identifies closest intersection by distance", {
   result <- line_rect_intersection(
-    x0 = -100, y0 = 5,
-    x1 = 200, y1 = 5,
-    half_w = 2, half_h = 1.5
+    x0 = -100,
+    y0 = 5,
+    x1 = 200,
+    y1 = 5,
+    half_w = 2,
+    half_h = 1.5
   )
 
-  expect_equal(result["x"], c(x = 199), tolerance = 1e-10)
+  expect_equal(result["x"], c(x = 198), tolerance = 1e-10)
 })
 
 test_that("results are suitable for plotting arrows", {
-
   results <- list()
 
   for (i in 1:10) {
@@ -675,9 +721,12 @@ test_that("results are suitable for plotting arrows", {
     start_y <- runif(1, -50, 50)
 
     r <- line_rect_intersection(
-      x0 = start_x, y0 = start_y,
-      x1 = 50, y1 = 25,
-      half_w = 5, half_h = 5
+      x0 = start_x,
+      y0 = start_y,
+      x1 = 50,
+      y1 = 25,
+      half_w = 5,
+      half_h = 5
     )
 
     expect_true(r["x"] >= 45 && r["x"] <= 55)
@@ -753,11 +802,22 @@ describe("adjust_edges_by_box output structure", {
     result <- adjust_edges_by_box(edges, nodes)
 
     expect_s3_class(result, "data.frame")
-    expect_true(all(c(
-      "from", "to", "curvature", "pvalue", "est",
-      "xstart_adj", "ystart_adj", "xend_adj", "yend_adj",
-      "is_horizontal", "is_vertical"
-    ) %in% names(result)))
+    expect_true(all(
+      c(
+        "from",
+        "to",
+        "curvature",
+        "pvalue",
+        "est",
+        "xstart_adj",
+        "ystart_adj",
+        "xend_adj",
+        "yend_adj",
+        "is_horizontal",
+        "is_vertical"
+      ) %in%
+        names(result)
+    ))
   })
 
   it("preserves number of rows from input", {
@@ -787,7 +847,7 @@ describe("adjust_edges_by_box coordinate adjustment", {
   })
 
   it("end point lies on target node boundary", {
-    edges <- create_test_edges()  |> preprocess_edges_df()
+    edges <- create_test_edges() |> preprocess_edges_df()
     nodes <- create_test_nodes()
 
     result <- adjust_edges_by_box(edges, nodes)
@@ -818,7 +878,8 @@ describe("adjust_edges_by_box vertical lines", {
       curvature = c(0),
       pvalue = c(0.01),
       est = c(0.5)
-    ) |> preprocess_edges_df()
+    ) |>
+      preprocess_edges_df()
 
     result <- adjust_edges_by_box(edges, nodes)
     expect_true(result$is_vertical[1])
@@ -827,19 +888,27 @@ describe("adjust_edges_by_box vertical lines", {
 
 describe("adjust_edges_by_box integration", {
   it("produces coordinates suitable for draw_dag", {
-
     edges <- create_test_edges() |> preprocess_edges_df()
     nodes <- create_test_nodes()
 
     result <- adjust_edges_by_box(edges, nodes)
 
     required_for_draw <- c(
-      "xstart_adj", "ystart_adj", "xend_adj", "yend_adj",
-      "curvature", "pvalue", "est", "ci.lower", "ci.upper"
+      "xstart_adj",
+      "ystart_adj",
+      "xend_adj",
+      "yend_adj",
+      "curvature",
+      "pvalue",
+      "est",
+      "ci.lower",
+      "ci.upper"
     )
 
     # Check that key columns exist
-    expect_true(all(c("xstart_adj", "ystart_adj", "xend_adj", "yend_adj") %in% names(result)))
+    expect_true(all(
+      c("xstart_adj", "ystart_adj", "xend_adj", "yend_adj") %in% names(result)
+    ))
   })
 })
 
@@ -859,13 +928,13 @@ describe("adjust_edges_by_box numerical precision", {
       curvature = c(0),
       pvalue = c(0.01),
       est = c(0.5)
-    ) |> preprocess_edges_df()
+    ) |>
+      preprocess_edges_df()
 
     expect_no_error({
       result <- adjust_edges_by_box(edges, nodes)
     })
   })
-
 
   it("all values are finite (no Inf or NaN)", {
     edges <- create_test_edges() |> preprocess_edges_df()
@@ -906,38 +975,67 @@ create_test_edges2 <- function() {
     vjust = c(0.5, 0.5),
     label_position = c(1, 1),
     curvature_amount = c(
-      0.2, 0.15, -0.25, -0.3,
-      -0.35, -0.4, -0.4, 0.2
+      0.2,
+      0.15,
+      -0.25,
+      -0.3,
+      -0.35,
+      -0.4,
+      -0.4,
+      0.2
     ),
     gap = c(0, 0)
   )
 }
 
 
-
 create_test_edges_curved <- function() {
   data.frame(
     from = c(
-      "Input", "Hidden", "Output", "InputVertical",
-      "InputVertical", "InputVertical", "Output", "Hidden"
+      "Input",
+      "Hidden",
+      "Output",
+      "InputVertical",
+      "InputVertical",
+      "InputVertical",
+      "Output",
+      "Hidden"
     ),
     to = c(
-      "Hidden", "Output", "Input", "Input",
-      "Output", "Hidden", "InputVertical", "Input"
+      "Hidden",
+      "Output",
+      "Input",
+      "Input",
+      "Output",
+      "Hidden",
+      "InputVertical",
+      "Input"
     ),
     curvature = c(1, 1, 1, 1, 1, 1, 1, 1),
     pvalue = c(0.1, 0.30, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5),
     est = c(
-      0.2, 0.15, -0.25, -0.3,
-      -0.35, -0.4, -0.4, 0.2
+      0.2,
+      0.15,
+      -0.25,
+      -0.3,
+      -0.35,
+      -0.4,
+      -0.4,
+      0.2
     ),
     ci.lower = c(0.4, 0.1, -0.6, -0.3, -0.3, -0.3, -0.3, -0.3),
     ci.upper = c(1.2, 0.9, 0.0, -0.3, -0.3, -0.3, -0.3, -0.3),
     hjust = c(0.5, 0.50, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5),
     vjust = c(0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5),
     curvature_amount = c(
-      0.2, 0.15, -0.25, -0.3,
-      -0.35, -0.4, -0.4, 0.2
+      0.2,
+      0.15,
+      -0.25,
+      -0.3,
+      -0.35,
+      -0.4,
+      -0.4,
+      0.2
     )
   )
 }
@@ -1075,82 +1173,80 @@ describe("plot_dag label customization", {
 })
 
 withr::with_seed(
-  seed=123,
+  seed = 123,
   code = {
-  describe("plot_dag edge cases", {
-    it("handles when single node", {
-      if (identical(Sys.getenv("VDIFR_SKIP_CHECK"), "true")) {
-        skip("Skipping visual tests during devtools::check")
-      }
-      nodes <- data.frame(
-        label = c("Single"),
-        x = c(7),
-        y = c(4),
-        node_id = c("Single")
-      )
-
-      edges <- data.frame(
-        from = character(1),
-        to = character(1),
-        curvature = numeric(1),
-        pvalue = numeric(1),
-        est = numeric(1),
-        ci.lower = numeric(1),
-        ci.upper = numeric(1),
-        hjust = numeric(1),
-        vjust = numeric(1),
-        curvature = c(1),
-        curvature_amount = c(0),
-        label_position = c(1)
-      )
-      p <- plot_dag(nodes, edges)
-      suppressWarnings(
-        vdiffr::expect_doppelganger(
-          "handles when single node",
-          p
+    describe("plot_dag edge cases", {
+      it("handles when single node", {
+        if (identical(Sys.getenv("VDIFR_SKIP_CHECK"), "true")) {
+          skip("Skipping visual tests during devtools::check")
+        }
+        nodes <- data.frame(
+          label = c("Single"),
+          x = c(7),
+          y = c(4),
+          node_id = c("Single")
         )
-      )
+
+        edges <- data.frame(
+          from = character(1),
+          to = character(1),
+          curvature = numeric(1),
+          pvalue = numeric(1),
+          est = numeric(1),
+          ci.lower = numeric(1),
+          ci.upper = numeric(1),
+          hjust = numeric(1),
+          vjust = numeric(1),
+          curvature = c(1),
+          curvature_amount = c(0),
+          label_position = c(1)
+        )
+        p <- plot_dag(nodes, edges)
+        suppressWarnings(
+          vdiffr::expect_doppelganger(
+            "handles when single node",
+            p
+          )
+        )
+      })
+
+      it("handles duplicate edges (same endpoints)", {
+        nodes <- data.frame(
+          label = c("A", "B"),
+          x = c(0, 10),
+          y = c(0, 0),
+          node_id = c("A", "B")
+        )
+
+        edges <- data.frame(
+          from = c("A", "A"),
+          to = c("B", "B"),
+          curvature = c(0, 1),
+          pvalue = c(0.01, 0.30),
+          est = c(0.8, 0.2),
+          ci.lower = c(0.4, -0.1),
+          ci.upper = c(1.2, 0.5),
+          hjust = c(0.33, 0.50),
+          vjust = c(0.5, 0.5),
+          curvature = c(1, 1),
+          curvature_amount = c(0, 0),
+          gap = c(0, 0)
+        )
+
+        result <- plot_dag(nodes, edges)
+
+        expect_s3_class(result, "ggplot")
+      })
     })
-
-    it("handles duplicate edges (same endpoints)", {
-      nodes <- data.frame(
-        label = c("A", "B"),
-        x = c(0, 10),
-        y = c(0, 0),
-        node_id = c("A", "B")
-      )
-
-      edges <- data.frame(
-        from = c("A", "A"),
-        to = c("B", "B"),
-        curvature = c(0, 1),
-        pvalue = c(0.01, 0.30),
-        est = c(0.8, 0.2),
-        ci.lower = c(0.4, -0.1),
-        ci.upper = c(1.2, 0.5),
-        hjust = c(0.33, 0.50),
-        vjust = c(0.5, 0.5),
-        curvature = c(1, 1),
-        curvature_amount = c(0, 0),
-        gap = c(0,0)
-      )
-
-      result <- plot_dag(nodes, edges)
-
-      expect_s3_class(result, "ggplot")
-    })
-  })
   }
 )
 
 describe("plot_dag rendering verification", {
-
   it("plot renders with ggplot2 methods", {
     nodes <- create_test_nodes2()
     edges <- create_test_edges2()
 
     result <- plot_dag(nodes, edges)
-
 
     expect_no_error({
       result_plus <- result + labs(title = "Test Title")
@@ -1186,319 +1282,645 @@ it("complete workflow: plot and save", {
 })
 
 withr::with_seed(
-  seed=123,
+  seed = 123,
   code = {
-    it(
-      "Curved non-significant paths",
-      {
-        # Skip during check if VDIFR_SKIP_CHECK is set
-        if (identical(Sys.getenv("VDIFR_SKIP_CHECK"), "true")) {
-          skip("Skipping visual tests during devtools::check")
-        }
-        nodes <- create_test_nodes2()
-        edges <- create_test_edges_curved()
-        edges$label_position <- c(1, 1, 1, 1, 1, 1, 1, 1)
-        p <- plot_dag(nodes, edges, ylim = c(-2, 7), xlim = c(-4, 16), text_size = 3)
-        vdiffr::expect_doppelganger(
-          "Curved non-significant paths",
-          p
-        )
+    it("Curved non-significant paths", {
+      # Skip during check if VDIFR_SKIP_CHECK is set
+      if (identical(Sys.getenv("VDIFR_SKIP_CHECK"), "true")) {
+        skip("Skipping visual tests during devtools::check")
       }
-    )
+      nodes <- create_test_nodes2()
+      edges <- create_test_edges_curved()
+      edges$label_position <- c(1, 1, 1, 1, 1, 1, 1, 1)
+      p <- plot_dag(
+        nodes,
+        edges,
+        ylim = c(-2, 7),
+        xlim = c(-4, 16),
+        text_size = 3
+      )
+      vdiffr::expect_doppelganger(
+        "Curved non-significant paths",
+        p
+      )
+    })
   }
 )
 withr::with_seed(
-  seed=123,
+  seed = 123,
   code = {
-    it(
-      "Curved significant and non-significant paths",
-      {
+    it("Curved significant and non-significant paths", {
+      # Skip during check if VDIFR_SKIP_CHECK is set
+      if (identical(Sys.getenv("VDIFR_SKIP_CHECK"), "true")) {
+        skip("Skipping visual tests during devtools::check")
+      }
+      nodes <- create_test_nodes2()
+      edges <- data.frame(
+        from = c(
+          "Input",
+          "Hidden",
+          "Output",
+          "InputVertical",
+          "InputVertical",
+          "InputVertical",
+          "Output",
+          "Hidden"
+        ),
+        to = c(
+          "Hidden",
+          "Output",
+          "Input",
+          "Input",
+          "Output",
+          "Hidden",
+          "InputVertical",
+          "Input"
+        ),
+        curvature = c(1, 1, 1, 1, 1, 1, 1, 1),
+        pvalue = c(0.01, 0.30, 0.005, 0.5, 0.5, 0.5, 0.005, 0.5),
+        est = c(
+          0.2,
+          0.15,
+          -0.25,
+          -0.3,
+          -0.35,
+          -0.4,
+          -0.4,
+          0.2
+        ),
+        ci.lower = c(0.4, 0.1, -0.6, -0.3, -0.3, -0.3, -0.3, -0.3),
+        ci.upper = c(1.2, 0.9, 0.0, -0.3, -0.3, -0.3, -0.3, -0.3),
+        hjust = c(0.5, 0.50, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5),
+        vjust = c(0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5),
+        curvature_amount = c(
+          0.2,
+          0.15,
+          -0.25,
+          -0.3,
+          -0.35,
+          -0.4,
+          -0.4,
+          0.2
+        )
+      )
+      edges$label_position <- c(1, 1, 1, 1, 1, 1, 1, 1)
+      p <- plot_dag(
+        nodes,
+        edges,
+        ylim = c(-2, 7),
+        xlim = c(-2, 16),
+        text_size = 3
+      )
+      vdiffr::expect_doppelganger(
+        "Curved significant and non-significant paths",
+        p
+      )
+    })
+  }
+)
 
-        # Skip during check if VDIFR_SKIP_CHECK is set
-        if (identical(Sys.getenv("VDIFR_SKIP_CHECK"), "true")) {
-          skip("Skipping visual tests during devtools::check")
-        }
-        nodes <- create_test_nodes2()
-        edges <- data.frame(
-          from = c(
-            "Input", "Hidden", "Output", "InputVertical",
-            "InputVertical", "InputVertical", "Output", "Hidden"
+withr::with_seed(
+  seed = 123,
+  code = {
+    it("Mixed straight Curved sig non-sig paths", {
+      # Skip during check if VDIFR_SKIP_CHECK is set
+      if (identical(Sys.getenv("VDIFR_SKIP_CHECK"), "true")) {
+        skip("Skipping visual tests during devtools::check")
+      }
+      nodes <- create_test_nodes2()
+      edges <- data.frame(
+        from = c(
+          "Input",
+          "Hidden",
+          "Output",
+          "InputVertical",
+          "InputVertical",
+          "InputVertical",
+          "Output",
+          "Hidden"
+        ),
+        to = c(
+          "Hidden",
+          "Output",
+          "Input",
+          "Input",
+          "Output",
+          "Hidden",
+          "InputVertical",
+          "Input"
+        ),
+        curvature = c(0, 0, 1, 1, 1, 1, 1, 1),
+        pvalue = c(0.01, 0.30, 0.005, 0.5, 0.5, 0.5, 0.005, 0.5),
+        est = c(
+          0.2,
+          0.15,
+          -0.25,
+          -0.3,
+          -0.35,
+          -0.4,
+          -0.4,
+          0.2
+        ),
+        ci.lower = c(0.4, 0.1, -0.6, -0.3, -0.3, -0.3, -0.3, -0.3),
+        ci.upper = c(1.2, 0.9, 0.0, -0.3, -0.3, -0.3, -0.3, -0.3),
+        hjust = c(0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5),
+        vjust = c(0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5),
+        curvature_amount = c(
+          0,
+          0,
+          -0.25,
+          -0.3,
+          -0.35,
+          -0.4,
+          -0.4,
+          0.2
+        )
+      )
+      edges$label_position <- c(1, 0.5, 1, 1, 1, 1, 1, 1)
+      p <- plot_dag(
+        nodes,
+        edges,
+        ylim = c(-2, 7),
+        xlim = c(-2, 16),
+        text_size = 3
+      )
+      # p
+      vdiffr::expect_doppelganger(
+        "Mixed straight Curved sig non-sig paths",
+        p
+      )
+    })
+  }
+)
+
+
+withr::with_seed(
+  seed = 123,
+  code = {
+    it("Curved paths positive curvature", {
+      # Skip during check if VDIFR_SKIP_CHECK is set
+      if (identical(Sys.getenv("VDIFR_SKIP_CHECK"), "true")) {
+        skip("Skipping visual tests during devtools::check")
+      }
+      nodes <- create_test_nodes2()
+      edges <- data.frame(
+        from = c(
+          "Input",
+          "Hidden",
+          "Output",
+          "InputVertical",
+          "InputVertical",
+          "Hidden",
+          "Output",
+          "Hidden"
+        ),
+        to = c(
+          "Hidden",
+          "Output",
+          "Hidden",
+          "Input",
+          "Output",
+          "InputVertical",
+          "InputVertical",
+          "Input"
+        ),
+        curvature = c(1, 1, 1, 1, 1, 1, 1, 1),
+        pvalue = c(0.01, 0.30, 0.005, 0.5, 0.5, 0.5, 0.005, 0.5),
+        est = c(
+          0.2,
+          0.15,
+          -0.25,
+          -0.3,
+          -0.35,
+          -0.4,
+          -0.4,
+          0.2
+        ),
+        ci.lower = c(0.4, 0.1, -0.6, -0.3, -0.3, -0.3, -0.3, -0.3),
+        ci.upper = c(1.2, 0.9, 0.0, -0.3, -0.3, -0.3, -0.3, -0.3),
+        hjust = c(0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5),
+        vjust = c(0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5),
+        curvature_amount = c(
+          0.2,
+          0.2,
+          0.25,
+          0.3,
+          0.35,
+          0.4,
+          0.4,
+          0.2
+        )
+      )
+      edges$label_position <- c(1, 0.5, 1, 1, 1, 1, 1, 1)
+      p <- plot_dag(
+        nodes,
+        edges,
+        ylim = c(-2, 7),
+        xlim = c(-2, 16),
+        text_size = 3
+      )
+      # p
+      vdiffr::expect_doppelganger(
+        "Curved paths positive curvature",
+        p
+      )
+    })
+  }
+)
+
+
+withr::with_seed(
+  seed = 123,
+  code = {
+    it("Curved paths negative curvature", {
+      # Skip during check if VDIFR_SKIP_CHECK is set
+      if (identical(Sys.getenv("VDIFR_SKIP_CHECK"), "true")) {
+        skip("Skipping visual tests during devtools::check")
+      }
+      nodes <- create_test_nodes2()
+      edges <- data.frame(
+        from = c(
+          "Input",
+          "Hidden",
+          "Output",
+          "InputVertical",
+          "InputVertical",
+          "Hidden",
+          "Output",
+          "Hidden"
+        ),
+        to = c(
+          "Hidden",
+          "Output",
+          "Hidden",
+          "Input",
+          "Output",
+          "InputVertical",
+          "InputVertical",
+          "Input"
+        ),
+        curvature = c(1, 1, 1, 1, 1, 1, 1, 1),
+        pvalue = c(0.01, 0.30, 0.005, 0.5, 0.5, 0.5, 0.005, 0.5),
+        est = c(
+          0.2,
+          0.15,
+          -0.25,
+          -0.3,
+          -0.35,
+          -0.4,
+          -0.4,
+          0.2
+        ),
+        ci.lower = c(0.4, 0.1, -0.6, -0.3, -0.3, -0.3, -0.3, -0.3),
+        ci.upper = c(1.2, 0.9, 0.0, -0.3, -0.3, -0.3, -0.3, -0.3),
+        hjust = c(0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5),
+        vjust = c(0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5),
+        curvature_amount = c(
+          -0.2,
+          -0.2,
+          -0.25,
+          -0.3,
+          -0.35,
+          -0.4,
+          -0.4,
+          -0.2
+        )
+      )
+      edges$label_position <- c(1, 0.5, 1, 1, 1, 1, 1, 1)
+      p <- plot_dag(
+        nodes,
+        edges,
+        ylim = c(-2, 7),
+        xlim = c(-2, 16),
+        text_size = 3
+      )
+      # p
+      vdiffr::expect_doppelganger(
+        "Curved paths negative curvature",
+        p
+      )
+    })
+  }
+)
+
+
+withr::with_seed(
+  seed = 123,
+  code = {
+    it("horizontal lines2", {
+      # Skip during check if VDIFR_SKIP_CHECK is set
+      if (identical(Sys.getenv("VDIFR_SKIP_CHECK"), "true")) {
+        skip("Skipping visual tests during devtools::check")
+      }
+      nodes <- create_test_nodes2()
+      edges <- data.frame(
+        from = c(
+          "Input",
+          "Output",
+          "Output",
+          "InputVertical",
+          "Hidden"
+        ),
+        to = c(
+          "Output",
+          "Hidden",
+          "InputVertical",
+          "Input",
+          "InputVertical"
+        ),
+        curvature = c(0, 0, 0, 0, 0),
+        pvalue = c(0.1, 0.30, 0.5, 0.5, 0.005),
+        est = c(
+          0.2,
+          0.15,
+          -0.25,
+          -0.3,
+          -0.5
+        ),
+        ci.lower = c(0.4, 0.1, -0.6, -0.3, -0.3),
+        ci.upper = c(1.2, 0.9, 0.0, -0.3, -0.3),
+        hjust = c(0.5, 0.5, 0.25, 0.5, 0.5),
+        vjust = c(0.5, 0.5, 0.50, 0.5, 0.5),
+        curvature_amount = c(
+          0,
+          0,
+          0,
+          0,
+          0
+        ),
+        gap = c(0.75, 0, 0.2, 0, 0.5)
+      )
+      edges$label_position <- c(0.5, 0.5, 1, 0.8, 0.5)
+      p <- plot_dag(
+        nodes,
+        edges,
+        ylim = c(-2, 4),
+        xlim = c(-2, 16),
+        text_size = 3
+      )
+      # p
+      vdiffr::expect_doppelganger(
+        "horizontal lines2",
+        p
+      )
+    })
+  }
+)
+
+
+withr::with_seed(
+  seed = 123,
+  code = {
+    it("diagonal lines", {
+      # Skip during check if VDIFR_SKIP_CHECK is set
+      if (identical(Sys.getenv("VDIFR_SKIP_CHECK"), "true")) {
+        skip("Skipping visual tests during devtools::check")
+      }
+      nodes <- data.frame(
+        node_id = c("A", "C", "B", "D"),
+        label = c("A", "C", "B", "D"),
+        x = c(0, 14, 14, 0),
+        y = c(0, 3, 0, 3)
+      )
+      edges <- data.frame(
+        from = c(
+          "A",
+          "C",
+          "B",
+          "D",
+          "B",
+          "C"
+        ),
+        to = c(
+          "B",
+          "D",
+          "C",
+          "A",
+          "D",
+          "A"
+        ),
+        curvature = c(0, 0, 0, 0, 0, 0),
+        pvalue = c(0.1, 0.30, 0.5, 0.5, 0.5, 0.005),
+        est = c(
+          0.2,
+          0.15,
+          -0.25,
+          -0.3,
+          -0.35,
+          -0.4
+        ),
+        ci.lower = c(0.4, 0.1, -0.6, -0.3, -0.3, -0.3),
+        ci.upper = c(1.2, 0.9, 0.0, -0.3, -0.3, -0.3),
+        hjust = c(0.5, 0.5, 0.5, 0.5, 0.3, 0.8),
+        vjust = c(0.5, 0.5, 0.50, 0.5, 0, 0),
+        curvature_amount = c(
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        )
+      )
+      # Set the gap values
+      edges$gap <- c(-1, -3, -1, -3, -1, -3)
+      p <- plot_dag(
+        nodes,
+        edges,
+        ylim = c(-2, 4),
+        xlim = c(-2, 16),
+        text_size = 3
+      )
+      # p
+      vdiffr::expect_doppelganger(
+        "diagonal lines",
+        p
+      )
+    })
+  }
+)
+
+
+#############################
+# plot_dag curved paths     #
+#############################
+
+withr::with_seed(
+  seed = 123,
+  code = {
+    test_that("curved paths with positive and negative curvature", {
+      if (identical(Sys.getenv("VDIFR_SKIP_CHECK"), "true")) {
+        skip("Skipping visual tests during devtools::check")
+      }
+
+      # Load data
+      data("FacialBurns", package = "Lmisc")
+
+      # Fit SEM
+      model <- "
+        HADS ~ Age
+        HADS ~ Sex
+        HADS ~ TBSA
+        TBSA ~ Age
+        TBSA ~ Sex
+        Age ~ Sex
+      "
+
+      fit_model <- lavaan::sem(
+        model = model,
+        data = FacialBurns,
+        missing = "fiml"
+      )
+
+      # Create DAG
+      dag <- ggdag::dagify(
+        HADS ~ Age,
+        HADS ~ Sex,
+        HADS ~ TBSA,
+        TBSA ~ Age,
+        TBSA ~ Sex,
+        Age ~ Sex,
+        outcome = "TBSA",
+        coords = list(
+          x = c(
+            TBSA = 0,
+            HADS = 4,
+            Age = 2,
+            Sex = 2
           ),
-          to = c(
-            "Hidden", "Output", "Input", "Input",
-            "Output", "Hidden", "InputVertical", "Input"
-          ),
-          curvature = c(1, 1, 1, 1, 1, 1, 1, 1),
-          pvalue = c(0.01, 0.30, 0.005, 0.5, 0.5, 0.5, 0.005, 0.5),
-          est = c(
-            0.2, 0.15, -0.25, -0.3,
-            -0.35, -0.4, -0.4, 0.2
-          ),
-          ci.lower = c(0.4, 0.1, -0.6, -0.3, -0.3, -0.3, -0.3, -0.3),
-          ci.upper = c(1.2, 0.9, 0.0, -0.3, -0.3, -0.3, -0.3, -0.3),
-          hjust = c(0.5, 0.50, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5),
-          vjust = c(0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5),
-          curvature_amount = c(
-            0.2, 0.15, -0.25, -0.3,
-            -0.35, -0.4, -0.4, 0.2
+          y = c(
+            HADS = 0,
+            TBSA = 0,
+            Age = 1,
+            Sex = -1
+          )
+        ),
+        labels = c(
+          HADS = "HADS",
+          TBSA = "TBSA",
+          Age = "Age",
+          Sex = "Sex"
+        )
+      )
+
+      tidy_dag <- ggdag::tidy_dagitty(dag)
+
+      nodes <- tidy_dag$data %>%
+        filter(!duplicated(name)) %>%
+        transmute(
+          node_id = label,
+          x = x,
+          y = y,
+          label = label
+        )
+
+      # Extract model parameters
+      parameters_fit_model <- modify_parameter_estimates(
+        df = lavaan::parameterestimates(
+          fit_model,
+          standardized = FALSE
+        ),
+        round_digits = 2
+      )
+
+      temp <- data.frame(
+        parameters_fit_model[
+          parameters_fit_model$op == "~",
+        ]
+      )
+
+      # Helper for creating edges
+      create_edges <- function(
+        curvature_amount,
+        default_scale_factor,
+        fixed_pvalue = FALSE
+      ) {
+        edges <- tidy_dag$data %>%
+          mutate(
+            curvature = 1,
+            curvature_amount = case_when(
+              name == "Sex" & to == "HADS" ~ 3 * curvature_amount,
+              TRUE ~ curvature_amount
+            )
+          )
+
+        edges <- left_join(
+          x = edges,
+          y = temp,
+          by = join_by(
+            name == rhs,
+            to == lhs
           )
         )
-        edges$label_position <- c(1, 1, 1, 1, 1, 1, 1, 1)
-        p <- plot_dag(nodes, edges, ylim = c(-2, 7), xlim = c(-2, 16), text_size = 3)
-        vdiffr::expect_doppelganger(
-          "Curved significant and non-significant paths",
-          p
-        )
 
-      }
-    )
-  }
-)
-
-withr::with_seed(
-  seed=123,
-  code = {
-    it(
-      "Mixed straight Curved sig non-sig paths",
-      {
-        # Skip during check if VDIFR_SKIP_CHECK is set
-        if (identical(Sys.getenv("VDIFR_SKIP_CHECK"), "true")) {
-          skip("Skipping visual tests during devtools::check")
-        }
-            nodes <- create_test_nodes2()
-            edges <- data.frame(
-              from = c(
-                "Input", "Hidden", "Output", "InputVertical",
-                "InputVertical", "InputVertical", "Output", "Hidden"
-              ),
-              to = c(
-                "Hidden", "Output", "Input", "Input",
-                "Output", "Hidden", "InputVertical", "Input"
-              ),
-              curvature = c(0, 0, 1, 1, 1, 1, 1, 1),
-              pvalue = c(0.01, 0.30, 0.005, 0.5, 0.5, 0.5, 0.005, 0.5),
-              est = c(
-                0.2, 0.15, -0.25, -0.3,
-                -0.35, -0.4, -0.4, 0.2
-              ),
-              ci.lower = c(0.4, 0.1, -0.6, -0.3, -0.3, -0.3, -0.3, -0.3),
-              ci.upper = c(1.2, 0.9, 0.0, -0.3, -0.3, -0.3, -0.3, -0.3),
-              hjust = c(0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5),
-              vjust = c(0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5),
-              curvature_amount = c(
-                0, 0, -0.25, -0.3,
-                -0.35, -0.4, -0.4, 0.2
-              )
+        edges <- edges %>%
+          filter(!is.na(to)) %>%
+          transmute(
+            from = name,
+            to = to,
+            curvature = curvature,
+            curvature_amount = curvature_amount,
+            pvalue = if (fixed_pvalue) 0.55 else pvalue,
+            est = est,
+            ci.lower = ci.lower,
+            ci.upper = ci.upper
+          ) %>%
+          mutate(
+            hjust = 0.5,
+            vjust = 0.5,
+            gap = -2,
+            scale_factor = case_when(
+              from == "Sex" & to == "HADS" ~ 1,
+              TRUE ~ default_scale_factor
             )
-            edges$label_position <- c(1, 0.5, 1, 1, 1, 1, 1, 1)
-            p <- plot_dag(nodes, edges, ylim = c(-2, 7), xlim = c(-2, 16), text_size = 3)
-            # p
-            vdiffr::expect_doppelganger(
-              "Mixed straight Curved sig non-sig paths",
-              p
-            )
-
-      }
-    )
-  }
-)
-
-
-
-withr::with_seed(
-  seed=123,
-  code = {
-    it(
-      "Curved paths positive curvature",
-      {
-        # Skip during check if VDIFR_SKIP_CHECK is set
-        if (identical(Sys.getenv("VDIFR_SKIP_CHECK"), "true")) {
-          skip("Skipping visual tests during devtools::check")
-        }
-        nodes <- create_test_nodes2()
-        edges <- data.frame(
-          from = c(
-            "Input", "Hidden", "Output", "InputVertical",
-            "InputVertical", "Hidden", "Output", "Hidden"
-          ),
-          to = c(
-            "Hidden", "Output", "Hidden", "Input",
-            "Output", "InputVertical", "InputVertical", "Input"
-          ),
-          curvature = c(1, 1, 1, 1, 1, 1, 1, 1),
-          pvalue = c(0.01, 0.30, 0.005, 0.5, 0.5, 0.5, 0.005, 0.5),
-          est = c(
-            0.2, 0.15, -0.25, -0.3,
-            -0.35, -0.4, -0.4, 0.2
-          ),
-          ci.lower = c(0.4, 0.1, -0.6, -0.3, -0.3, -0.3, -0.3, -0.3),
-          ci.upper = c(1.2, 0.9, 0.0, -0.3, -0.3, -0.3, -0.3, -0.3),
-          hjust = c(0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5),
-          vjust = c(0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5),
-          curvature_amount = c(
-            0.2, 0.2, 0.25, 0.3,
-            0.35, 0.4, 0.4, 0.2
           )
-        )
-        edges$label_position <- c(1, 0.5, 1, 1, 1, 1, 1, 1)
-        p <- plot_dag(nodes, edges, ylim = c(-2, 7), xlim = c(-2, 16), text_size = 3)
-        # p
-        vdiffr::expect_doppelganger(
-          "Curved paths positive curvature",
-          p
-        )
 
+        return(edges)
       }
-    )
+
+      # Test 1: Positive curvature
+      edges_positive <- create_edges(
+        curvature_amount = 0.1,
+        default_scale_factor = -0.7,
+        fixed_pvalue = TRUE
+      )
+
+      plot_positive <- plot_dag(
+        nodes = nodes,
+        edges = edges_positive,
+        label_size = 10,
+        label_size_unit = "pt",
+        text_size = 4,
+        xlim = c(-0.5, 4.4),
+        ylim = c(-1.5, 1.5)
+      )
+
+      vdiffr::expect_doppelganger(
+        "Curved paths positive curvature and negative scale",
+        plot_positive
+      )
+
+      # Test 2: Negative curvature
+      edges_negative <- create_edges(
+        curvature_amount = -0.1,
+        default_scale_factor = 0.96,
+        fixed_pvalue = FALSE
+      )
+
+      plot_negative <- plot_dag(
+        nodes = nodes,
+        edges = edges_negative,
+        label_size = 10,
+        label_size_unit = "pt",
+        text_size = 4,
+        xlim = c(-0.5, 4.4),
+        ylim = c(-1.5, 1.5)
+      )
+
+      vdiffr::expect_doppelganger(
+        "Curved paths negative curvature and positive scale",
+        plot_negative
+      )
+    })
   }
 )
-
-
-withr::with_seed(
-  seed=123,
-  code = {
-    it(
-      "Curved paths negative curvature",
-      {
-        # Skip during check if VDIFR_SKIP_CHECK is set
-        if (identical(Sys.getenv("VDIFR_SKIP_CHECK"), "true")) {
-          skip("Skipping visual tests during devtools::check")
-        }
-        nodes <- create_test_nodes2()
-        edges <- data.frame(
-          from = c(
-            "Input", "Hidden", "Output", "InputVertical",
-            "InputVertical", "Hidden", "Output", "Hidden"
-          ),
-          to = c(
-            "Hidden", "Output", "Hidden", "Input",
-            "Output", "InputVertical", "InputVertical", "Input"
-          ),
-          curvature = c(1, 1, 1, 1, 1, 1, 1, 1),
-          pvalue = c(0.01, 0.30, 0.005, 0.5, 0.5, 0.5, 0.005, 0.5),
-          est = c(
-            0.2, 0.15, -0.25, -0.3,
-            -0.35, -0.4, -0.4, 0.2
-          ),
-          ci.lower = c(0.4, 0.1, -0.6, -0.3, -0.3, -0.3, -0.3, -0.3),
-          ci.upper = c(1.2, 0.9, 0.0, -0.3, -0.3, -0.3, -0.3, -0.3),
-          hjust = c(0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5),
-          vjust = c(0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5),
-          curvature_amount = c(
-            -0.2, -0.2, -0.25, -0.3,
-            -0.35, -0.4, -0.4, -0.2
-          )
-        )
-        edges$label_position <- c(1, 0.5, 1, 1, 1, 1, 1, 1)
-        p <- plot_dag(nodes, edges, ylim = c(-2, 7), xlim = c(-2, 16), text_size = 3)
-        # p
-        vdiffr::expect_doppelganger(
-          "Curved paths negative curvature",
-          p
-        )
-
-      }
-    )
-  }
-)
-
-
-
-withr::with_seed(
-  seed=123,
-  code = {
-    it(
-      "horizontal lines2",
-      {
-        # Skip during check if VDIFR_SKIP_CHECK is set
-        if (identical(Sys.getenv("VDIFR_SKIP_CHECK"), "true")) {
-          skip("Skipping visual tests during devtools::check")
-        }
-            nodes <- create_test_nodes2()
-            edges <- data.frame(
-              from = c(
-                "Input", "Output", "Output", "InputVertical", "Hidden"
-              ),
-              to = c(
-                "Output", "Hidden", "InputVertical", "Input", "InputVertical"
-              ),
-              curvature = c(0, 0, 0, 0,0),
-              pvalue = c(0.1, 0.30, 0.5, 0.5, 0.005),
-              est = c(
-                0.2, 0.15, -0.25, -0.3, -0.5
-              ),
-              ci.lower = c(0.4, 0.1, -0.6, -0.3, -0.3),
-              ci.upper = c(1.2, 0.9, 0.0, -0.3, -0.3),
-              hjust = c(0.5, 0.5, 0.25, 0.5, 0.5),
-              vjust = c(0.5, 0.5, 0.50, 0.5, 0.5),
-              curvature_amount = c(
-                0, 0, 0, 0, 0
-              ),
-              gap = c(0.75, 0, 0.2, 0, 0.5)
-            )
-            edges$label_position <- c(0.5, 0.5, 1, 0.8, 0.5)
-            p <- plot_dag(nodes, edges, ylim = c(-2, 4), xlim = c(-2, 16), text_size = 3)
-            # p
-            vdiffr::expect_doppelganger(
-              "horizontal lines2",
-              p
-            )
-
-      }
-    )
-}
-    )
-
-
-withr::with_seed(
-  seed=123,
-  code = {
-    it(
-      "diagonal lines",
-      {
-        # Skip during check if VDIFR_SKIP_CHECK is set
-        if (identical(Sys.getenv("VDIFR_SKIP_CHECK"), "true")) {
-          skip("Skipping visual tests during devtools::check")
-        }
-        nodes <- data.frame(
-          node_id = c("A", "C", "B", "D"),
-          label = c("A", "C", "B", "D"),
-          x = c(0, 14, 14, 0),
-          y = c(0, 3, 0, 3)
-        )
-        edges <- data.frame(
-          from = c(
-            "A", "C", "B", "D", "B", "C"
-          ),
-          to = c(
-            "B", "D", "C", "A", "D", "A"
-          ),
-          curvature = c(0, 0, 0, 0, 0, 0),
-          pvalue = c(0.1, 0.30, 0.5, 0.5, 0.5, 0.005),
-          est = c(
-            0.2, 0.15, -0.25, -0.3, -0.35, -0.4
-          ),
-          ci.lower = c(0.4, 0.1, -0.6, -0.3, -0.3, -0.3),
-          ci.upper = c(1.2, 0.9, 0.0, -0.3, -0.3, -0.3),
-          hjust = c(0.5, 0.5, 0.5, 0.5, 0.3, 0.8),
-          vjust = c(0.5, 0.5, 0.50, 0.5, 0, 0),
-          curvature_amount = c(
-            0, 0, 0, 0,0,0
-          )
-        )
-        # Set the gap values
-        edges$gap <- c(-1, -3, -1, -3, -1,-3)
-        p <- plot_dag(nodes, edges, ylim = c(-2, 4), xlim = c(-2, 16), text_size = 3)
-        # p
-        vdiffr::expect_doppelganger(
-          "diagonal lines",
-          p
-        )
-
-      }
-    )
-  }
-)
-
-
-
