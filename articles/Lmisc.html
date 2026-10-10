@@ -96,12 +96,12 @@ interval and the lower confidence interval of the estimate. These are
 drawn on top of the lines</p></li>
 <li><p><code>vjust</code> and <code>hjust</code> indicates the vertical
 and horizontal offset for the text on top of the line</p></li>
-<li><p><code>gap</code> controls the gap between the boxes and the
-start/end of the straight line positive values increase the length of
-the line and negative values do the opposite. gap=0 means that the line
-start and ends at the exact centers of the boxes. Default value is 1. If
-you need granular control, specify the values for each
-relationship.</p></li>
+<li><p><code>scale_factor</code> controls the gap between the boxes and
+the start/end of the straight line Values between 0 and 1, shrink the
+length of the line. scale_factor=0 means that the line start and ends at
+the exact centers of the boxes. scale_factor=1 means that the line start
+and ends near the borders of the boxes. Default value is 1. If you need
+granular control, specify the values for each relationship.</p></li>
 <li><p><code>curvature_amount</code> controls the curvature of the
 curved paths. These follow the notation of ggplot: positive values mean
 a right-hand curve while negative values a left-hand curve.</p></li>
@@ -128,7 +128,7 @@ a right-hand curve while negative values a left-hand curve.</p></li>
 <span>    <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span></span>
 <span>  <span class="op">)</span>,</span>
 <span>  scale_factor<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>    <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span></span>
+<span>    <span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -205,16 +205,15 @@ When we walk from <code>B</code> to <code>C</code> (or from
 right-handed (<code>curvature_amount = 0.2</code>).</p>
 </div>
 <div class="section level2">
-<h2 id="control-of-gap">Control of gap<a class="anchor" aria-label="anchor" href="#control-of-gap"></a>
+<h2 id="control-of-scale_factor">Control of scale_factor<a class="anchor" aria-label="anchor" href="#control-of-scale_factor"></a>
 </h2>
-<p>We can control the length of the lines by using the <code>gap</code>
-argument.</p>
+<p>We can control the length of the lines by using the
+<code>scale_factor</code> argument.</p>
 <p>By using 0, we say that the lines should start from the center of the
 boxes. 1 is the default.</p>
 <ul>
-<li>We can assign a <em>positive</em> value to increase the length of
-the lines</li>
-<li>We can assign a <em>negative</em> value to shrink the lines</li>
+<li>We can assign a value between <em>0 &amp; 1</em> to shrink the
+lines</li>
 </ul>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">edges</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -238,13 +237,13 @@ the lines</li>
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Set the gap values</span></span>
-<span><span class="va">edges</span><span class="op">$</span><span class="va">gap</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="op">-</span><span class="fl">3</span>, <span class="op">-</span><span class="fl">1</span>, <span class="op">-</span><span class="fl">3</span>, <span class="op">-</span><span class="fl">1</span>,<span class="op">-</span><span class="fl">3</span><span class="op">)</span></span>
+<span><span class="co"># Set the scale_factor values</span></span>
+<span><span class="va">edges</span><span class="op">$</span><span class="va">scale_factor</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.95</span>,<span class="fl">0.9</span>,<span class="fl">0.95</span>,<span class="fl">0.9</span>,<span class="fl">0.95</span>,<span class="fl">0.9</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plot_dag.html">plot_dag</a></span><span class="op">(</span><span class="va">nodes</span>, <span class="va">edges</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">0.2</span>, <span class="fl">3.2</span><span class="op">)</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">0.2</span>, <span class="fl">14.2</span><span class="op">)</span>, text_size <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Lmisc_files/figure-html/plot_gap-1.png" class="r-plt" alt="" width="960"></p>
-<p>As you can see, those relationships that have <code>-3</code> as
-their gap values have their length shrinken.</p>
+<p><img src="Lmisc_files/figure-html/plot_scale_factor-1.png" class="r-plt" alt="" width="960"></p>
+<p>As you can see, those relationships that have <code>0.90</code> as
+their scale_factor values have their length shrinken.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

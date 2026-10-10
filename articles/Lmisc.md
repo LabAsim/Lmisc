@@ -38,11 +38,12 @@ aforementioned nodes.
 - `vjust` and `hjust` indicates the vertical and horizontal offset for
   the text on top of the line
 
-- `gap` controls the gap between the boxes and the start/end of the
-  straight line positive values increase the length of the line and
-  negative values do the opposite. gap=0 means that the line start and
-  ends at the exact centers of the boxes. Default value is 1. If you
-  need granular control, specify the values for each relationship.
+- `scale_factor` controls the gap between the boxes and the start/end of
+  the straight line Values between 0 and 1, shrink the length of the
+  line. scale_factor=0 means that the line start and ends at the exact
+  centers of the boxes. scale_factor=1 means that the line start and
+  ends near the borders of the boxes. Default value is 1. If you need
+  granular control, specify the values for each relationship.
 
 - `curvature_amount` controls the curvature of the curved paths. These
   follow the notation of ggplot: positive values mean a right-hand curve
@@ -71,7 +72,7 @@ edges <- data.frame(
     0, 0, 0, 0
   ),
   scale_factor=c(
-    0, 0, 0, 0
+    1, 1, 1, 1
   )
 )
 ```
@@ -129,15 +130,15 @@ When we walk from `D` to `A` (or `C` to `D`) with a negative value
 walk from `B` to `C` (or from `A` to `B`) with a positive value, the
 path is right-handed (`curvature_amount = 0.2`).
 
-## Control of gap
+## Control of scale_factor
 
-We can control the length of the lines by using the `gap` argument.
+We can control the length of the lines by using the `scale_factor`
+argument.
 
 By using 0, we say that the lines should start from the center of the
 boxes. 1 is the default.
 
-- We can assign a *positive* value to increase the length of the lines
-- We can assign a *negative* value to shrink the lines
+- We can assign a value between *0 & 1* to shrink the lines
 
 ``` r
 
@@ -162,13 +163,13 @@ edges <- data.frame(
   )
 )
 
-# Set the gap values
-edges$gap <- c(-1, -3, -1, -3, -1,-3)
+# Set the scale_factor values
+edges$scale_factor <- c(0.95,0.9,0.95,0.9,0.95,0.9)
 
 plot_dag(nodes, edges, ylim = c(-0.2, 3.2), xlim = c(-0.2, 14.2), text_size = 3)
 ```
 
-![](Lmisc_files/figure-html/plot_gap-1.png)
+![](Lmisc_files/figure-html/plot_scale_factor-1.png)
 
-As you can see, those relationships that have `-3` as their gap values
-have their length shrinken.
+As you can see, those relationships that have `0.90` as their
+scale_factor values have their length shrinken.
