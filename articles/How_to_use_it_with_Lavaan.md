@@ -35,7 +35,7 @@ fit_model <- sem(
   missing = "fiml"
 )
 summary(fit_model)
-#> lavaan 0.7-2 ended normally after 1 iteration
+#> lavaan 0.7-3 ended normally after 1 iteration
 #> 
 #>   Estimator                                         ML
 #>   Optimization method                           NLMINB
@@ -46,6 +46,10 @@ summary(fit_model)
 #> 
 #> Model Test User Model:
 #>                                                       
+#>   Test statistic                                 0.000
+#>   Degrees of freedom                                 0
+#>                                                       
+#>   Browne's residual (NT model-based) test             
 #>   Test statistic                                 0.000
 #>   Degrees of freedom                                 0
 #> 
@@ -205,9 +209,9 @@ edges <- edges |>
     )
   ) |> 
   mutate(
-    gap = case_when(
-      from == "Sex" & to == "HADS" ~ -0.5,
-      .default = -1
+    scale_factor = case_when(
+      from == "Sex" & to == "HADS" ~ 0.8,
+      .default = 1
     )
   )
 ```

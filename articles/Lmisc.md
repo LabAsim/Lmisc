@@ -69,6 +69,9 @@ edges <- data.frame(
   vjust = c(0.5, 0.5, 0.50, 0.5),
   curvature_amount = c(
     0, 0, 0, 0
+  ),
+  scale_factor=c(
+    0, 0, 0, 0
   )
 )
 ```
