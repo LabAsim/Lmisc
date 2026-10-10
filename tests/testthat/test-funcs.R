@@ -984,7 +984,7 @@ create_test_edges2 <- function() {
       -0.4,
       0.2
     ),
-    gap = c(0, 0)
+    scale_factor = c(0, 0)
   )
 }
 
@@ -1230,7 +1230,7 @@ withr::with_seed(
           vjust = c(0.5, 0.5),
           curvature = c(1, 1),
           curvature_amount = c(0, 0),
-          gap = c(0, 0)
+          scale_factor = c(0, 0)
         )
 
         result <- plot_dag(nodes, edges)
@@ -1648,7 +1648,7 @@ withr::with_seed(
           0,
           0
         ),
-        gap = c(0.75, 0, 0.2, 0, 0.5)
+        scale_factor = c(0.75, 0, 0.2, 0, 0.5)
       )
       edges$label_position <- c(0.5, 0.5, 1, 0.8, 0.5)
       p <- plot_dag(
@@ -1722,7 +1722,7 @@ withr::with_seed(
           0
         )
       )
-      # Set the gap values
+      # Set the scale_factor values
       edges$gap <- c(-1, -3, -1, -3, -1, -3)
       p <- plot_dag(
         nodes,
