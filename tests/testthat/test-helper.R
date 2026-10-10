@@ -77,3 +77,72 @@ test_that("correct output with mixed types", {
 
   expect_equal(correct_output, testit)
 })
+
+####################
+# shrink_endpoints #
+####################
+
+test_that("negative factor throws error", {
+  expect_error(
+    shrink_endpoints(
+      x1 = 0,
+      y1 = 0,
+      x2 = 10,
+      y2 = 10,
+      factor = -0.5
+    )
+  )
+})
+
+
+test_that("factor greater than 1 throws error", {
+  expect_error(
+    shrink_endpoints(
+      x1 = 0,
+      y1 = 0,
+      x2 = 10,
+      y2 = 10,
+      factor = 1.5
+    )
+  )
+})
+
+
+test_that("factor 1 leaves endpoints unchanged", {
+  result <- shrink_endpoints(
+    x1 = 2,
+    y1 = 3,
+    x2 = 8,
+    y2 = 9,
+    factor = 1
+  )
+
+  correct_output <- data.frame(
+    x1 = 2,
+    y1 = 3,
+    x2 = 8,
+    y2 = 9
+  )
+
+  expect_equal(result, correct_output)
+})
+
+
+test_that("factor close to zero produces short line", {
+  result <- shrink_endpoints(
+    x1 = 0,
+    y1 = 0,
+    x2 = 10,
+    y2 = 20,
+    factor = 0.01
+  )
+
+  correct_output <- data.frame(
+    x1 = 4.95,
+    y1 = 9.9,
+    x2 = 5.05,
+    y2 = 10.1
+  )
+
+  expect_equal(result, correct_output)
+})
